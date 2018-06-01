@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "630665463793",
+    "firebase_url": "https://parking-velo.firebaseio.com",
+    "project_id": "parking-velo",
+    "storage_bucket": "parking-velo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:630665463793:android:54c50d3282b44c20",
+        "android_client_info": {
+          "package_name": "com.ruslanmancavolkov.parkingvelo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "630665463793-uqcq1tv5u62c46v4087pd2020jaqb6gk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ruslanmancavolkov.parkingvelo",
+            "certificate_hash": "d97bfcb5a102fa9fbae1e45f3b88a615ab08ecb3"
+          }
+        },
+        {
+          "client_id": "630665463793-oo8o2lo5hf6cfs9chgjbrr122ilvqk1m.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "630665463793-oo8o2lo5hf6cfs9chgjbrr122ilvqk1m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqIClxmWW9mWMff46ap8ibvCnUwpcH_yU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "630665463793-oo8o2lo5hf6cfs9chgjbrr122ilvqk1m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
