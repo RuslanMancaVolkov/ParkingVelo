@@ -21,7 +21,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class AccountActivity extends AppCompatActivity {
 
     private Button btnChangeEmail, btnChangePassword, btnSendResetEmail, btnRemoveUser,
-            changeEmail, changePassword, sendEmail, remove, signOut;
+            changeEmail, changePassword, sendEmail, btnPersistAnonymousAccount, remove, signOut, persistAnonymousAccount;
 
     private EditText oldEmail, newEmail, password, newPassword;
     private ProgressBar progressBar;
@@ -65,6 +65,8 @@ public class AccountActivity extends AppCompatActivity {
         sendEmail = findViewById(R.id.send);
         remove = findViewById(R.id.remove);
         signOut = findViewById(R.id.sign_out);
+        persistAnonymousAccount = findViewById(R.id.persist_anonymous_account);
+        btnPersistAnonymousAccount = findViewById(R.id.btnPersistAnonymousAccount);
 
         oldEmail = findViewById(R.id.old_email);
         newEmail = findViewById(R.id.new_email);
@@ -79,12 +81,37 @@ public class AccountActivity extends AppCompatActivity {
         changePassword.setVisibility(View.GONE);
         sendEmail.setVisibility(View.GONE);
         remove.setVisibility(View.GONE);
+        btnPersistAnonymousAccount.setVisibility(View.GONE);
+        persistAnonymousAccount.setVisibility(View.GONE);
 
         progressBar = findViewById(R.id.progressBar);
 
         if (progressBar != null) {
             progressBar.setVisibility(View.GONE);
         }
+
+        if (user.isAnonymous()){
+            signOut.setVisibility(View.GONE);
+            persistAnonymousAccount.setVisibility(View.VISIBLE);
+            btnChangeEmail.setVisibility(View.GONE);
+            btnChangePassword.setVisibility(View.GONE);
+            btnSendResetEmail.setVisibility(View.GONE);
+        }
+
+        persistAnonymousAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                oldEmail.setVisibility(View.GONE);
+                newEmail.setVisibility(View.VISIBLE);
+                password.setVisibility(View.VISIBLE);
+                newPassword.setVisibility(View.GONE);
+                changeEmail.setVisibility(View.GONE);
+                changePassword.setVisibility(View.GONE);
+                sendEmail.setVisibility(View.GONE);
+                remove.setVisibility(View.GONE);
+                btnPersistAnonymousAccount.setVisibility(View.VISIBLE);
+            }
+        });
 
         btnChangeEmail.setOnClickListener(new View.OnClickListener() {
             @Override

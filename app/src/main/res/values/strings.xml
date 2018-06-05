@@ -37,5 +37,7 @@
     <string name="btn_account">Compte</string>
     <string name="facebook_app_id">466545037117157</string>
     <string name="fb_login_protocol_scheme">fb466545037117157</string>
-    <string name="btn_login_anonymous">Se connecter anonymement</string>
+    <string name="btn_login_anonymous">Rester anonyme</string>
+    <string name="btn_persist_anonymous_account">Passer à un vrai compte ?</string>
+    <string name="btn_persist_anonymous">Valider</string>
 </resources>

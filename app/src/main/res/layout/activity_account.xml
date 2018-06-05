@@ -30,6 +30,8 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
+        android:layout_gravity="center"
+        android:gravity="center"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <EditText
@@ -80,7 +82,7 @@
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimaryDark"
             android:text="@string/btn_change"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textStyle="bold" />
 
         <Button
@@ -91,7 +93,7 @@
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimaryDark"
             android:text="@string/btn_change"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textStyle="bold" />
 
         <Button
@@ -102,7 +104,18 @@
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimaryDark"
             android:text="@string/btn_send"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnPersistAnonymousAccount"
+            style="?android:textAppearanceSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/colorPrimaryDark"
+            android:text="@string/btn_persist_anonymous"
+            android:textColor="@android:color/black"
             android:textStyle="bold" />
 
         <ProgressBar
@@ -119,7 +132,7 @@
             android:layout_marginTop="16dp"
             android:background="@color/colorPrimaryDark"
             android:text="@string/btn_remove"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/black"
             android:textStyle="bold" />
 
         <Button
@@ -159,12 +172,23 @@
             android:textStyle="bold" />
 
         <Button
+            android:id="@+id/persist_anonymous_account"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@color/colorAccent"
+            android:text="@string/btn_persist_anonymous_account"
+            android:textColor="@android:color/white"
+            android:textStyle="bold" />
+
+        <Button
             android:id="@+id/sign_out"
             style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/colorPrimary"
+            android:background="@color/colorAccent"
             android:text="@string/btn_sign_out"
             android:textColor="@android:color/white"
             android:textStyle="bold" />

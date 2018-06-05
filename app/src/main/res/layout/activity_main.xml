@@ -20,7 +20,7 @@
             android:layout_marginTop="20dip"
             android:background="@color/colorAccent"
             android:text="@string/btn_account"
-            android:textColor="@android:color/black" />
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 
