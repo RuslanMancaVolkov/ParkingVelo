@@ -74,6 +74,18 @@
             android:maxLines="1"
             android:singleLine="true" />
 
+
+        <EditText
+            android:id="@+id/newPasswordConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusableInTouchMode="true"
+            android:hint="@string/new_pass_confirm"
+            android:imeOptions="actionUnspecified"
+            android:inputType="textPassword"
+            android:maxLines="1"
+            android:singleLine="true" />
+
         <Button
             android:id="@+id/changeEmail"
             style="?android:textAppearanceSmall"
@@ -117,6 +129,12 @@
             android:text="@string/btn_persist_anonymous"
             android:textColor="@android:color/black"
             android:textStyle="bold" />
+
+        <com.google.android.gms.common.SignInButton
+            android:id="@+id/btn_persist_google"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dip"/>
 
         <ProgressBar
             android:id="@+id/progressBar"
