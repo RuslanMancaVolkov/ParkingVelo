@@ -23,7 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SignupActivity extends AppCompatActivity {
 
-    private EditText inputEmail, inputPassword;
+    private EditText inputEmail, inputPassword, inputConfirmPassword;
     private Button btnSignIn, btnSignUp, btnResetPassword;
     private ProgressBar progressBar;
     private FirebaseAuth auth;
@@ -40,6 +40,7 @@ public class SignupActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.sign_up_button);
         inputEmail = findViewById(R.id.email);
         inputPassword = findViewById(R.id.password);
+        inputConfirmPassword = findViewById(R.id.confirm_password);
         progressBar = findViewById(R.id.progressBar);
         btnResetPassword = findViewById(R.id.btn_reset_password);
 
@@ -63,6 +64,7 @@ public class SignupActivity extends AppCompatActivity {
 
                 final String email = inputEmail.getText().toString().trim();
                 final String password = inputPassword.getText().toString().trim();
+                final String confirmPassword = inputConfirmPassword.getText().toString().trim();
 
                 if (TextUtils.isEmpty(email)) {
                     Toast.makeText(getApplicationContext(), getString(R.string.enter_email), Toast.LENGTH_SHORT).show();
@@ -76,6 +78,21 @@ public class SignupActivity extends AppCompatActivity {
 
                 if (password.length() < 6) {
                     Toast.makeText(getApplicationContext(), getString(R.string.minimum_password), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (TextUtils.isEmpty(confirmPassword)) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.enter_password), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (confirmPassword.length() < 6) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.minimum_password), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!password.equals(confirmPassword)) {
+                    Toast.makeText(getApplicationContext(), getString(R.string.different_passwords), Toast.LENGTH_SHORT).show();
                     return;
                 }
 

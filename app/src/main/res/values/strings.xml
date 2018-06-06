@@ -17,6 +17,7 @@
     <string name="title_activity_login">Créer un compte</string>
     <string name="hint_email">Email</string>
     <string name="hint_password">Mot de passe</string>
+    <string name="hint_password_confirm">Mot de passe</string>
     <string name="hint_name">Nom</string>
     <string name="btn_login">Se connecter</string>
     <string name="btn_link_to_register">Pas encore membre ?</string>
@@ -31,7 +32,7 @@
     <string name="btn_remove">Supprimer</string>
     <string name="btn_sign_out">Se déconnecter</string>
     <string name="lbl_forgot_password">Mot de passe oublié ?</string>
-    <string name="forgot_password_msg">Nous avons besoin de votre mot de passe pour vous envoyer les instructions.</string>
+    <string name="forgot_password_msg">Nous avons besoin de votre adresse mail pour vous envoyer les instructions.</string>
     <string name="title_activity_signup">SignupActivity</string>
     <string name="title_activity_account">AccountActivity</string>
     <string name="btn_account">Compte</string>

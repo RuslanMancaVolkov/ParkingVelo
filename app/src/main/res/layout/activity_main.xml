@@ -4,24 +4,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.ruslanmancavolkov.parkingvelo.MainActivity">
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="@color/colorPrimary"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/activity_horizontal_margin">
-
-        <Button
-            android:id="@+id/btn_account"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+        <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dip"
-            android:background="@color/colorAccent"
-            android:text="@string/btn_account"
-            android:textColor="@android:color/white" />
+            android:layout_height="fill_parent"
+            android:background="@color/colorPrimary"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/activity_horizontal_margin">
 
-    </LinearLayout>
+            <Button
+                android:id="@+id/btn_account"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dip"
+                android:background="@color/colorAccent"
+                android:text="@string/btn_account"
+                android:textColor="@android:color/white" />
 
+        </LinearLayout>
+    </ScrollView>
 </android.support.constraint.ConstraintLayout>
