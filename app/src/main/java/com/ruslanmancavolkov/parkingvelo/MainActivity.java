@@ -1,23 +1,37 @@
 package com.ruslanmancavolkov.parkingvelo;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -25,24 +39,32 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.ruslanmancavolkov.parkingvelo.models.Parcs;
+import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GeoQueryEventListener {
 
     private Button btnAccount;
 
@@ -65,6 +87,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int DEFAULT_ZOOM = 15;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
+    private GoogleMap.OnCameraIdleListener onCameraIdleListener;
+    private GoogleMap.OnMapLongClickListener onMapLongClickListener;
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
@@ -80,6 +104,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String[] mLikelyPlaceAddresses;
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
+
+    private static final GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017);
+    private static final int INITIAL_ZOOM_LEVEL = 14;
+    //private static final String GEO_FIRE_DB = "https://publicdata-transit.firebaseio.com";
+    private static final String GEO_FIRE_DB = "https://parking-velo.firebaseio.com/";
+    //private static final String GEO_FIRE_REF = GEO_FIRE_DB + "/_geofire";
+    private static final String GEO_FIRE_REF = GEO_FIRE_DB;
+    private static final String GEO_FIRE_PARCS_REF = GEO_FIRE_DB + "/parcs_locations";
+
+    private Circle searchCircle;
+    private GeoFire geoFire;
+    private GeoQuery geoQuery;
+
+    private Map<String,Marker> markers;
+
+    private DatabaseReference ref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +164,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
+
+        // FirebaseOptions options = new FirebaseOptions.Builder().setApiKey("AIzaSyDqIClxmWW9mWMff46ap8ibvCnUwpcH_yU").setApplicationId("geofire").setDatabaseUrl(GEO_FIRE_REF).build();
+        // FirebaseApp app = FirebaseApp.initializeApp(this, options, "testApp");
+
+        // setup GeoFire
+        //this.geoFire = new GeoFire(FirebaseDatabase.getInstance(app).getReferenceFromUrl(GEO_FIRE_REF));
+        ref = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_REF);
+        DatabaseReference ref_parcs_locations = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_PARCS_REF);
+        this.geoFire = new GeoFire(ref_parcs_locations);
+        // radius in km
+        this.geoQuery = this.geoFire.queryAtLocation(INITIAL_CENTER, 1);
+
+        // setup markers
+        this.markers = new HashMap<String, Marker>();
+
         btnAccount = findViewById(R.id.btn_account);
 
         btnAccount.setOnClickListener(new View.OnClickListener() {
@@ -132,6 +188,165 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, AccountActivity.class));
             }
         });
+
+        configureCameraIdle();
+        configureMapLongClick();
+    }
+
+    @Override
+    public void onKeyEntered(String key, GeoLocation location) {
+        // Add a new marker to the map
+        Marker marker = this.mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude)));
+        this.markers.put(key, marker);
+    }
+
+    @Override
+    public void onKeyExited(String key) {
+        // Remove any old marker
+        Marker marker = this.markers.get(key);
+        if (marker != null) {
+            marker.remove();
+            this.markers.remove(key);
+        }
+    }
+
+    @Override
+    public void onKeyMoved(String key, GeoLocation location) {
+        // Move the marker
+        Marker marker = this.markers.get(key);
+        if (marker != null) {
+            this.animateMarkerTo(marker, location.latitude, location.longitude);
+        }
+    }
+
+    @Override
+    public void onGeoQueryReady() {
+    }
+
+    @Override
+    public void onGeoQueryError(DatabaseError error) {
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setMessage("There was an unexpected error querying GeoFire: " + error.getMessage())
+                .setPositiveButton(android.R.string.ok, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
+
+    // Animation handler for old APIs without animation support
+    private void animateMarkerTo(final Marker marker, final double lat, final double lng) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        final long DURATION_MS = 3000;
+        final Interpolator interpolator = new AccelerateDecelerateInterpolator();
+        final LatLng startPosition = marker.getPosition();
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                float elapsed = SystemClock.uptimeMillis() - start;
+                float t = elapsed/DURATION_MS;
+                float v = interpolator.getInterpolation(t);
+
+                double currentLat = (lat - startPosition.latitude) * v + startPosition.latitude;
+                double currentLng = (lng - startPosition.longitude) * v + startPosition.longitude;
+                marker.setPosition(new LatLng(currentLat, currentLng));
+
+                // if animation is not finished yet, repeat
+                if (t < 1) {
+                    handler.postDelayed(this, 16);
+                }
+            }
+        });
+    }
+
+    private double zoomLevelToRadius(double zoomLevel) {
+        // Approximation to fit circle into view
+        return 26384000/Math.pow(2, zoomLevel);
+    }
+
+    private void configureCameraIdle() {
+        onCameraIdleListener = new GoogleMap.OnCameraIdleListener() {
+            @Override
+            public void onCameraIdle() {
+
+                Toast.makeText(MainActivity.this, "The camera has stopped moving.",
+                        Toast.LENGTH_SHORT).show();
+                LatLng center = mMap.getCameraPosition().target;
+                double radius = zoomLevelToRadius(mMap.getCameraPosition().zoom);
+                searchCircle.setCenter(center);
+                searchCircle.setRadius(radius);
+                geoQuery.setCenter(new GeoLocation(center.latitude, center.longitude));
+                // radius in km
+                geoQuery.setRadius(radius / 1000);
+            }
+        };
+    }
+
+    private void configureMapLongClick() {
+        onMapLongClickListener = new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng point) {
+                final LatLng userPoint = point;
+                Toast.makeText(MainActivity.this, "LatLng : " + point.latitude + point.longitude,
+                        Toast.LENGTH_SHORT).show();
+
+
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+
+                Context context = getApplicationContext();
+                LinearLayout layout = new LinearLayout(context);
+                layout.setOrientation(LinearLayout.VERTICAL);
+
+                // Add a TextView here for the "Title" label, as noted in the comments
+                final EditText nameBox = new EditText(context);
+                nameBox.setHint("Nom");
+                layout.addView(nameBox); // Notice this is an add method
+
+                // Add another TextView here for the "Description" label
+                final EditText capacityBox = new EditText(context);
+                capacityBox.setHint("Capacité");
+                capacityBox.setInputType(InputType.TYPE_CLASS_NUMBER);
+                layout.addView(capacityBox); // Another add method
+
+                final EditText edittext = new EditText(getApplicationContext());
+                //alert.setMessage("Ajout d'un parc");
+                alert.setTitle("Ajout d'un parc");
+
+                alert.setView(layout);
+
+                alert.setPositiveButton("Ajouter", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String parcName = nameBox.getText().toString();
+                        String parcCapacity = capacityBox.getText().toString();
+                        Toast.makeText(MainActivity.this, "Nom du parc : " + parcName + " - " + parcCapacity,
+                                Toast.LENGTH_LONG).show();
+
+                        String uid = auth.getCurrentUser().getUid();
+                        DatabaseReference postsRef = ref.child("users_parcs").child(uid);
+                        String parcKey = postsRef.push().getKey();
+                        ref.child("users_parcs").child(uid).child(parcKey).setValue(new UsersParcs(true));
+
+                        DatabaseReference parcsRef = ref.child("parcs").child(parcKey);
+                        parcsRef.setValue(new Parcs(parcName, Integer.parseInt(parcCapacity)));
+
+                        geoFire = new GeoFire(ref.child("parcs_locations"));
+                        geoFire.setLocation(parcKey, new GeoLocation(userPoint.latitude, userPoint.longitude));
+
+
+                        //String key_of_data= ref.child("parcs").push().getKey();
+                    }
+                });
+
+                alert.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // what ever you want to do with No option.
+                    }
+                });
+
+                alert.show();
+            }
+        };
     }
 
     /**
@@ -178,6 +393,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
+        LatLng latLngCenter = new LatLng(INITIAL_CENTER.latitude, INITIAL_CENTER.longitude);
+        this.searchCircle = this.mMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
+        this.searchCircle.setFillColor(Color.argb(66, 137, 180, 56));
+        this.searchCircle.setStrokeColor(Color.argb(66, 137, 180, 56));
+        this.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
+
         // Use a custom info window adapter to handle multiple lines of text in the
         // info window contents.
         mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
@@ -204,6 +425,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+
         // Prompt the user for permission.
         getLocationPermission();
 
@@ -212,6 +434,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
+
+        mMap.setOnCameraIdleListener(onCameraIdleListener);
+        mMap.setOnMapLongClickListener(onMapLongClickListener);
     }
 
     /**
@@ -428,6 +653,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onStart() {
         super.onStart();
         auth.addAuthStateListener(authListener);
+        this.geoQuery.addGeoQueryEventListener(this);
     }
 
     @Override
@@ -436,5 +662,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (authListener != null) {
             auth.removeAuthStateListener(authListener);
         }
+
+        this.geoQuery.removeAllListeners();
+        for (Marker marker: this.markers.values()) {
+            marker.remove();
+        }
+        this.markers.clear();
     }
 }

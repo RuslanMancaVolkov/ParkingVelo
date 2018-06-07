@@ -34,11 +34,14 @@ dependencies {
     //compile 'com.google.android.gms:play-services:15.0.1'
     compile 'com.google.android.gms:play-services-places:15.0.1'
     compile 'com.google.android.gms:play-services-location:15.0.1'
+    // GeoFire
+    compile 'com.firebase:geofire-android:2.0.0'
     //compile 'com.google.android.gms:play-services-analytics:15.0.1'
     //compile 'com.google.android.gms:play-services-basement:15.0.1'
     implementation 'com.google.android.gms:play-services-auth:15.0.1'
     implementation 'com.google.firebase:firebase-core:16.0.0'
     implementation 'com.google.firebase:firebase-database:15.0.0'
+
     testCompile 'junit:junit:4.12'
 }
 
