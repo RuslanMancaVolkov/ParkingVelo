@@ -73,4 +73,6 @@
     <string name="pick_place">Choisissez une localisation</string>
 
     <string name="parc_capacity">Capacité</string>
+    <string name="btn_route">Itinéraire</string>
+    <string name="routes_fail">Impossible d\'afficher cet itinéraire</string>
 </resources>

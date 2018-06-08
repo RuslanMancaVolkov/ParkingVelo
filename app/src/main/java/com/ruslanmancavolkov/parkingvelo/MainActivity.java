@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
@@ -50,6 +51,8 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
@@ -63,7 +66,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
 import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
+import com.ruslanmancavolkov.parkingvelo.services.GoogleMapRoutesBuilder;
 
+import org.w3c.dom.Document;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mLocationPermissionGranted;
     private GoogleMap.OnCameraIdleListener onCameraIdleListener;
     private GoogleMap.OnMapLongClickListener onMapLongClickListener;
+    private GoogleMap.OnMarkerClickListener onMarkerClickListener;
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
@@ -125,6 +133,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DatabaseReference ref;
     private DatabaseReference refParcsLocations;
 
+    private LatLng clickedMarkerPosition;
+
+    private GoogleMapRoutesBuilder googleMapRoutesBuilder;
+
+    private Polyline currentPolyline;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -134,6 +148,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
+
+        googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
 
         setContentView(R.layout.activity_main);
 
@@ -195,13 +211,91 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         configureCameraIdle();
         configureMapLongClick();
+        configureMarkerClick();
+    }
+
+    private void configureMarkerClick() {
+        onMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick ( final Marker marker){
+                LatLng position = (LatLng) (marker.getTag());
+                clickedMarkerPosition = position;
+                Toast.makeText(MainActivity.this, "LatLng : " + position.latitude + position.longitude,
+                        Toast.LENGTH_LONG).show();
+
+                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
+                new RetrieveFeedTask().execute();
+                /*Document doc = googleMapRoutesBuilder.getDocument(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), position,
+                        GoogleMapRoutesBuilder.MODE_DRIVING)*/
+
+                /*ArrayList<LatLng> directionPoint = googleMapRoutesBuilder.getDirection(doc);
+                PolylineOptions rectLine = new PolylineOptions().width(3).color(
+                        Color.RED);
+
+                for (int i = 0; i < directionPoint.size(); i++) {
+                    rectLine.add(directionPoint.get(i));
+                }
+                Polyline polylin = mMap.addPolyline(rectLine);*/
+
+                return false;
+            }
+        };
+    }
+
+
+
+
+    class RetrieveFeedTask extends AsyncTask<String, Void, Document> {
+
+        private Exception exception;
+
+        protected Document doInBackground(String... urls) {
+            try {
+                Document doc = googleMapRoutesBuilder.getDocument(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), clickedMarkerPosition,
+                        GoogleMapRoutesBuilder.MODE_DRIVING);
+
+                return doc;
+            } catch (Exception e) {
+                this.exception = e;
+
+                return null;
+            }
+        }
+
+        protected void onPostExecute(Document doc) {
+            if (doc != null) {
+                if (currentPolyline != null){
+                    currentPolyline.remove();
+                }
+
+                BuildGoogleMapRoutes(doc);
+            }
+            else {
+                Toast.makeText(MainActivity.this, getString(R.string.routes_fail), Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void BuildGoogleMapRoutes(Document doc){
+        ArrayList<LatLng> directionPoint = googleMapRoutesBuilder.getDirection(doc);
+        PolylineOptions rectLine = new PolylineOptions().width(8).color(
+                Color.RED);
+
+        for (int i = 0; i < directionPoint.size(); i++) {
+            rectLine.add(directionPoint.get(i));
+        }
+
+        Polyline polylin = mMap.addPolyline(rectLine);
+        currentPolyline = polylin;
     }
 
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
+        final LatLng position = new LatLng(location.latitude, location.longitude);
         // Add a new marker to the map
-        final Marker marker = this.mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude))
+        final Marker marker = this.mMap.addMarker(new MarkerOptions().position(position)
                                 .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
+        marker.setTag(position);
         final String parcId = key;
         ref.child("parcs").child(parcId).child("cp").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -455,6 +549,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.setOnCameraIdleListener(onCameraIdleListener);
         mMap.setOnMapLongClickListener(onMapLongClickListener);
+        mMap.setOnMarkerClickListener(onMarkerClickListener);
     }
 
     /**
