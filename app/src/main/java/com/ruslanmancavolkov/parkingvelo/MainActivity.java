@@ -43,6 +43,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -55,9 +56,11 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
 import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
 
@@ -113,13 +116,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String GEO_FIRE_REF = GEO_FIRE_DB;
     private static final String GEO_FIRE_PARCS_REF = GEO_FIRE_DB + "/parcs_locations";
 
-    private Circle searchCircle;
+    //private Circle searchCircle;
     private GeoFire geoFire;
     private GeoQuery geoQuery;
 
     private Map<String,Marker> markers;
 
     private DatabaseReference ref;
+    private DatabaseReference refParcsLocations;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,8 +176,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // setup GeoFire
         //this.geoFire = new GeoFire(FirebaseDatabase.getInstance(app).getReferenceFromUrl(GEO_FIRE_REF));
         ref = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_REF);
-        DatabaseReference ref_parcs_locations = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_PARCS_REF);
-        this.geoFire = new GeoFire(ref_parcs_locations);
+        refParcsLocations = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_PARCS_REF);
+        this.geoFire = new GeoFire(refParcsLocations);
         // radius in km
         this.geoQuery = this.geoFire.queryAtLocation(INITIAL_CENTER, 1);
 
@@ -196,7 +200,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
         // Add a new marker to the map
-        Marker marker = this.mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude)));
+        final Marker marker = this.mMap.addMarker(new MarkerOptions().position(new LatLng(location.latitude, location.longitude))
+                                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
+        final String parcId = key;
+        ref.child("parcs").child(parcId).child("cp").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int parcCapacity = dataSnapshot.getValue(Integer.class);
+                //marker.setTag(String.valueOf(parcCapacity));
+                marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parcCapacity));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // ...
+            }
+        });
+
         this.markers.put(key, marker);
     }
 
@@ -269,12 +289,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onCameraIdle() {
 
-                Toast.makeText(MainActivity.this, "The camera has stopped moving.",
-                        Toast.LENGTH_SHORT).show();
                 LatLng center = mMap.getCameraPosition().target;
                 double radius = zoomLevelToRadius(mMap.getCameraPosition().zoom);
-                searchCircle.setCenter(center);
-                searchCircle.setRadius(radius);
+                //searchCircle.setCenter(center);
+                //searchCircle.setRadius(radius);
                 geoQuery.setCenter(new GeoLocation(center.latitude, center.longitude));
                 // radius in km
                 geoQuery.setRadius(radius / 1000);
@@ -394,9 +412,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = map;
 
         LatLng latLngCenter = new LatLng(INITIAL_CENTER.latitude, INITIAL_CENTER.longitude);
-        this.searchCircle = this.mMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
-        this.searchCircle.setFillColor(Color.argb(66, 137, 180, 56));
-        this.searchCircle.setStrokeColor(Color.argb(66, 137, 180, 56));
+        //this.searchCircle = this.mMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
+        //this.searchCircle.setFillColor(Color.argb(66, 137, 180, 56));
+        //this.searchCircle.setStrokeColor(Color.argb(66, 137, 180, 56));
         this.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngCenter, INITIAL_ZOOM_LEVEL));
 
         // Use a custom info window adapter to handle multiple lines of text in the
