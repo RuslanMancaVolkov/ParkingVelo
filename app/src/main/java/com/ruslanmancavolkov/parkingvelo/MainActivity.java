@@ -220,29 +220,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onMarkerClick ( final Marker marker){
                 LatLng position = (LatLng) (marker.getTag());
                 clickedMarkerPosition = position;
-                Toast.makeText(MainActivity.this, "LatLng : " + position.latitude + position.longitude,
-                        Toast.LENGTH_LONG).show();
+                /*Toast.makeText(MainActivity.this, "LatLng : " + position.latitude + position.longitude,
+                        Toast.LENGTH_LONG).show();*/
 
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
-                /*Document doc = googleMapRoutesBuilder.getDocument(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), position,
-                        GoogleMapRoutesBuilder.MODE_DRIVING)*/
-
-                /*ArrayList<LatLng> directionPoint = googleMapRoutesBuilder.getDirection(doc);
-                PolylineOptions rectLine = new PolylineOptions().width(3).color(
-                        Color.RED);
-
-                for (int i = 0; i < directionPoint.size(); i++) {
-                    rectLine.add(directionPoint.get(i));
-                }
-                Polyline polylin = mMap.addPolyline(rectLine);*/
 
                 return false;
             }
         };
     }
-
-
 
 
     class RetrieveFeedTask extends AsyncTask<String, Void, Document> {
@@ -279,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void BuildGoogleMapRoutes(Document doc){
         ArrayList<LatLng> directionPoint = googleMapRoutesBuilder.getDirection(doc);
         PolylineOptions rectLine = new PolylineOptions().width(8).color(
-                Color.RED);
+                Color.BLUE);
 
         for (int i = 0; i < directionPoint.size(); i++) {
             rectLine.add(directionPoint.get(i));
