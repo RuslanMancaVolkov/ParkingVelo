@@ -49,8 +49,8 @@
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\bike_parc_pin.png" />
-                                      <entry key="outputName" value="bike_parc_pin" />
+                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\logo_route.png" />
+                                      <entry key="outputName" value="logo_route" />
                                     </map>
                                   </option>
                                 </PersistentState>

@@ -25,6 +25,7 @@ import android.view.animation.Interpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +78,8 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GeoQueryEventListener {
 
     private Button btnAccount;
+
+    private ImageButton btnShowRoute;
 
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
@@ -152,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
 
         setContentView(R.layout.activity_main);
+        btnShowRoute = findViewById(R.id.btn_show_route);
+        //btnShowRoute.setVisibility(View.GONE);
 
         auth = FirebaseAuth.getInstance();
 
@@ -209,6 +214,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+        btnShowRoute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
+                new RetrieveFeedTask().execute();
+            }
+        });
+
         configureCameraIdle();
         configureMapLongClick();
         configureMarkerClick();
@@ -218,13 +231,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         onMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick ( final Marker marker){
+                btnShowRoute.setVisibility(View.VISIBLE);
                 LatLng position = (LatLng) (marker.getTag());
                 clickedMarkerPosition = position;
-                /*Toast.makeText(MainActivity.this, "LatLng : " + position.latitude + position.longitude,
-                        Toast.LENGTH_LONG).show();*/
-
-                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
-                new RetrieveFeedTask().execute();
 
                 return false;
             }

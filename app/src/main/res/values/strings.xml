@@ -75,4 +75,5 @@
     <string name="parc_capacity">Capacité</string>
     <string name="btn_route">Itinéraire</string>
     <string name="routes_fail">Impossible d\'afficher cet itinéraire</string>
+    <string name="title_activity_test">TestActivity</string>
 </resources>
