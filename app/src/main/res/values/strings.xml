@@ -35,7 +35,7 @@
     <string name="forgot_password_msg">Nous avons besoin de votre adresse mail pour vous envoyer les instructions.</string>
     <string name="title_activity_signup">SignupActivity</string>
     <string name="title_activity_account">AccountActivity</string>
-    <string name="btn_account">Compte</string>
+    <string name="btn_account">Profil</string>
     <string name="facebook_app_id">466545037117157</string>
     <string name="fb_login_protocol_scheme">fb466545037117157</string>
     <string name="btn_login_anonymous">Rester anonyme</string>
@@ -65,4 +65,15 @@
     <string name="btn_link_with_credentials">Valider</string>
     <string name="persist_anonymous_success">Votre nouveau compte a bien été créé</string>
     <string name="persist_anonymous_fail">Impossible de lier le compte anonyme à ce nouveau compte</string>
+
+    <string name="title_activity_maps">Détails de la localisation actuelle</string>
+    <string name="default_info_title">Localisation par défaut</string>
+    <string name="default_info_snippet">Aucun endroit trouvé car les permissions n\'ont pas été acceptées.</string>
+    <string name="option_get_place">Récupérez la localisation</string>
+    <string name="pick_place">Choisissez une localisation</string>
+
+    <string name="parc_capacity">Capacité</string>
+    <string name="btn_route">Itinéraire</string>
+    <string name="routes_fail">Impossible d\'afficher cet itinéraire</string>
+    <string name="title_activity_test">TestActivity</string>
 </resources>

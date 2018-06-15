@@ -33,9 +33,8 @@
                                   </option>
                                   <option name="values">
                                     <map>
-                                      <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundLayerName" value="logo_velo_background" />
-                                      <entry key="foregroundImage" value="D:\Diiage\Parking Vélo\images\logo.png" />
+                                      <entry key="foregroundImage" value="D:\Diiage\Parking Vélo\images\bike_parc_pin.png" />
                                       <entry key="foregroundLayerName" value="logo_velo_foreground" />
                                       <entry key="outputName" value="logo_velo_no_background" />
                                     </map>
@@ -50,8 +49,8 @@
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\logo.png" />
-                                      <entry key="outputName" value="logo_velo_not_background" />
+                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\logo_route.png" />
+                                      <entry key="outputName" value="logo_route" />
                                     </map>
                                   </option>
                                 </PersistentState>
