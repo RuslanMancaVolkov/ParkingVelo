@@ -4,6 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.ruslanmancavolkov.parkingvelo.MainActivity">
+    <com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout
+        xmlns:rfal="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/activity_main_rfal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        rfal:rfal_frame_color="#ffffff"
+        rfal:rfal_frame_alpha="0.7"
+        >
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -83,15 +91,40 @@
                 </LinearLayout>
 
             </FrameLayout>
-            <Button
+            <!--<Button
                 android:id="@+id/btn_account"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/colorAccent"
                 android:text="@string/btn_account"
                 android:textColor="@android:color/white"
-                android:layout_weight="1"/>
+                android:layout_weight="1"/>-->
 
         </LinearLayout>
     </ScrollView>
+
+
+    <com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton
+        xmlns:rfab="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/activity_main_rfab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:padding="8dp"
+        rfab:rfab_size="normal"
+        rfab:rfab_drawable="@mipmap/icon_menu"
+        rfab:rfab_shadow_radius="7dp"
+        rfab:rfab_shadow_color="#999999"
+        rfab:rfab_shadow_dx="0dp"
+        rfab:rfab_shadow_dy="5dp"
+        />
+        <!--
+        rfab:rfab_color_normal="#37474f"
+        rfab:rfab_color_pressed="#263238"
+        rfab:rfab_drawable="@drawable/rfab__drawable_rfab_default"-->
+
+    </com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout>
 </android.support.constraint.ConstraintLayout>

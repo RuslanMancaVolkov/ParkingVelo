@@ -48,9 +48,10 @@
                                   <option name="values">
                                     <map>
                                       <entry key="assetType" value="IMAGE" />
+                                      <entry key="backgroundColor" value="89b438" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\logo_route.png" />
-                                      <entry key="outputName" value="logo_route" />
+                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\icon_profil.png" />
+                                      <entry key="outputName" value="icon_profil" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -69,6 +70,11 @@
                 </map>
               </option>
             </PersistentState>
+          </value>
+        </entry>
+        <entry key="vectorWizard">
+          <value>
+            <PersistentState />
           </value>
         </entry>
       </map>

@@ -68,14 +68,28 @@ import com.google.firebase.database.ValueEventListener;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
 import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
 import com.ruslanmancavolkov.parkingvelo.services.GoogleMapRoutesBuilder;
+import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton;
+import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionHelper;
+import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout;
+import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RFACLabelItem;
+import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RapidFloatingActionContentLabelList;
 
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GeoQueryEventListener {
+//@AILayout(R.layout.activity_main)
+//AIActionBarActivity
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GeoQueryEventListener, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
+
+    //@AIView(R.id.activity_main_rfal)
+    private RapidFloatingActionLayout rfaLayout;
+    //@AIView(R.id.activity_main_rfab)
+    private RapidFloatingActionButton rfaBtn;
+    private RapidFloatingActionHelper rfabHelper;
 
     private Button btnAccount;
 
@@ -155,6 +169,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
 
         setContentView(R.layout.activity_main);
+
+
+        RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(MainActivity.this);
+        rfaContent.setOnRapidFloatingActionContentLabelListListener(this);
+        List<RFACLabelItem> items = new ArrayList<>();
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel(getString(R.string.btn_account))
+                .setResId(R.mipmap.icon_profil)
+                .setIconNormalColor(0xffffffff)
+                .setIconPressedColor(0xffffffff)
+                .setWrapper(0)
+        );
+        //btn_account
+        /*items.add(new RFACLabelItem<Integer>()
+                .setLabel("tiantian.china.2@gmail.com")
+                .setResId(R.mipmap.logo_velo)
+                .setIconNormalColor(0xff4e342e)
+                .setIconPressedColor(0xff3e2723)
+                .setLabelColor(Color.WHITE)
+                .setLabelSizeSp(14)
+                //.setLabelBackgroundDrawable(ABShape.generateCornerShapeDrawable(0xaa000000, ABTextUtil.dip2px(MainActivity.this, 4)))
+                .setWrapper(1)
+        );
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel("WangJie")
+                .setResId(R.mipmap.logo_velo)
+                .setIconNormalColor(0xff056f00)
+                .setIconPressedColor(0xff0d5302)
+                .setLabelColor(0xff056f00)
+                .setWrapper(2)
+        );
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel("Compose")
+                .setResId(R.mipmap.logo_velo)
+                .setIconNormalColor(0xff283593)
+                .setIconPressedColor(0xff1a237e)
+                .setLabelColor(0xff283593)
+                .setWrapper(3)
+        );*/
+        rfaContent
+                .setItems(items)
+                .setIconShadowColor(0xff888888)
+                //.setIconShadowRadius(ABTextUtil.dip2px(MainActivity.this, 5))
+                //.setIconShadowDy(ABTextUtil.dip2px(MainActivity.this, 5))
+        ;
+
+        RapidFloatingActionButton rfaBtn = findViewById(R.id.activity_main_rfab);
+        RapidFloatingActionLayout rfaLayout = findViewById(R.id.activity_main_rfal);
+
+        rfabHelper = new RapidFloatingActionHelper(
+                MainActivity.this,
+                rfaLayout,
+                rfaBtn,
+                rfaContent
+        ).build();
+
         btnShowRoute = findViewById(R.id.btn_show_route);
         //btnShowRoute.setVisibility(View.GONE);
 
@@ -205,14 +275,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // setup markers
         this.markers = new HashMap<String, Marker>();
 
-        btnAccount = findViewById(R.id.btn_account);
+        /*btnAccount = findViewById(R.id.btn_account);
 
         btnAccount.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, AccountActivity.class));
             }
-        });
+        });*/
 
         btnShowRoute.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -225,6 +295,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         configureCameraIdle();
         configureMapLongClick();
         configureMarkerClick();
+    }
+
+    @Override
+    public void onRFACItemLabelClick(int position, RFACLabelItem item) {
+        //Toast.makeText(MainActivity.this, "clicked label: " + position, Toast.LENGTH_SHORT).show();
+        rfabHelper.toggleContent();
+    }
+
+    @Override
+    public void onRFACItemIconClick(int position, RFACLabelItem item) {
+        switch (position) {
+            case 0:
+                startActivity(new Intent(MainActivity.this, AccountActivity.class));
+                break;
+            default:
+                break;
+        }
+        //Toast.makeText(MainActivity.this, "clicked icon: " + position, Toast.LENGTH_SHORT).show();
+        rfabHelper.toggleContent();
     }
 
     private void configureMarkerClick() {

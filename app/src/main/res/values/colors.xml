@@ -6,7 +6,7 @@
 </resources>-->
 <resources>
     <color name="colorPrimary">#ededf4</color>
-    <color name="colorPrimaryDark">#ededf4</color>
+    <color name="colorPrimaryDark">#89b438</color>
     <color name="colorAccent">#89b438</color>
 
     <color name="bg_login">#26ae90</color>
