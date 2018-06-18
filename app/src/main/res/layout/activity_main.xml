@@ -40,56 +40,6 @@
                     android:layout_height="wrap_content"
                     tools:context="com.example.rusla.sortonsadijon.MapsActivity"/>
 
-                <LinearLayout
-                    android:layout_height="48dp"
-                    android:layout_width="match_parent"
-                    android:layout_gravity="bottom|right"
-                    android:layout_marginBottom="60dp"
-                    android:layout_weight="1">
-
-                    <RelativeLayout
-                        android:layout_width="0dip"
-                        android:layout_height="fill_parent"
-                        android:layout_weight="0.8">
-                    </RelativeLayout>
-
-                    <!--<RelativeLayout
-                        android:layout_width="0dip"
-                        android:layout_height="fill_parent"
-                        android:layout_weight="0.3">
-                    </RelativeLayout>-->
-
-                    <RelativeLayout
-                        android:layout_width="0dip"
-                        android:layout_height="fill_parent"
-                        android:layout_weight="0.2">
-                        <ImageButton
-                            android:id="@+id/btn_show_route"
-                            android:background="?android:selectableItemBackground"
-                            android:src="@mipmap/logo_route"
-                            android:paddingTop="0dip"
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|right"
-                            android:visibility="gone"/>
-                    </RelativeLayout>
-
-                    <!--<RelativeLayout
-                        android:layout_width="0dip"
-                        android:layout_height="fill_parent"
-                        android:layout_weight="0.2">
-                        <ImageButton
-                            android:id="@+id/btnTakePhoto"
-                            android:background="?android:selectableItemBackground"
-                            android:src="@mipmap/logo_velo"
-                            android:paddingTop="0dip"
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|right"/>
-                    </RelativeLayout>-->
-
-                </LinearLayout>
-
             </FrameLayout>
             <!--<Button
                 android:id="@+id/btn_account"

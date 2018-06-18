@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -85,25 +87,19 @@ import java.util.Map;
 //AIActionBarActivity
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, GeoQueryEventListener, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
 
+    //region Floating Buttons
     //@AIView(R.id.activity_main_rfal)
     private RapidFloatingActionLayout rfaLayout;
     //@AIView(R.id.activity_main_rfab)
     private RapidFloatingActionButton rfaBtn;
     private RapidFloatingActionHelper rfabHelper;
+    //endregion
 
-    private Button btnAccount;
-
-    private ImageButton btnShowRoute;
-
-    private FirebaseAuth.AuthStateListener authListener;
-    private FirebaseAuth auth;
-
+    //region Google Maps
     private GoogleMap mMap;
     private CameraPosition mCameraPosition;
-
-    // The entry points to the Places API.
-    private GeoDataClient mGeoDataClient;
     private PlaceDetectionClient mPlaceDetectionClient;
+    private GoogleMapRoutesBuilder googleMapRoutesBuilder;
 
     // The entry point to the Fused Location Provider.
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -116,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mLocationPermissionGranted;
     private GoogleMap.OnCameraIdleListener onCameraIdleListener;
     private GoogleMap.OnMapLongClickListener onMapLongClickListener;
+    private GoogleMap.OnMapClickListener onMapClickListener;
     private GoogleMap.OnMarkerClickListener onMarkerClickListener;
 
     // The geographical location where the device is currently located. That is, the last-known
@@ -132,33 +129,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String[] mLikelyPlaceAddresses;
     private String[] mLikelyPlaceAttributions;
     private LatLng[] mLikelyPlaceLatLngs;
+    //endregion
 
+    //region Firebase
+    private FirebaseAuth.AuthStateListener authListener;
+    private FirebaseAuth auth;
+    private DatabaseReference ref;
+    private DatabaseReference refParcsLocations;
+    //endregion
+
+    //region GeoFire
     private static final GeoLocation INITIAL_CENTER = new GeoLocation(37.7789, -122.4017);
     private static final int INITIAL_ZOOM_LEVEL = 14;
-    //private static final String GEO_FIRE_DB = "https://publicdata-transit.firebaseio.com";
     private static final String GEO_FIRE_DB = "https://parking-velo.firebaseio.com/";
-    //private static final String GEO_FIRE_REF = GEO_FIRE_DB + "/_geofire";
     private static final String GEO_FIRE_REF = GEO_FIRE_DB;
     private static final String GEO_FIRE_PARCS_REF = GEO_FIRE_DB + "/parcs_locations";
 
     //private Circle searchCircle;
     private GeoFire geoFire;
     private GeoQuery geoQuery;
+    //endregion
 
+    //region Markers
     private Map<String,Marker> markers;
+    //endregion
 
-    private DatabaseReference ref;
-    private DatabaseReference refParcsLocations;
-
+    //region Marker Click
     private LatLng clickedMarkerPosition;
+    //endregion
 
-    private GoogleMapRoutesBuilder googleMapRoutesBuilder;
-
+    //region Route builder
     private Polyline currentPolyline;
+    private LocationManager mLocationManager;
+    private LatLng currentUsersPosition;
+    private float LOCATION_REFRESH_DISTANCE = 1;
+    private long LOCATION_REFRESH_TIME = 100;
+    private LocationListener mLocationListener;
+    //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -167,66 +179,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
-
-        setContentView(R.layout.activity_main);
-
-
-        RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(MainActivity.this);
-        rfaContent.setOnRapidFloatingActionContentLabelListListener(this);
-        List<RFACLabelItem> items = new ArrayList<>();
-        items.add(new RFACLabelItem<Integer>()
-                .setLabel(getString(R.string.btn_account))
-                .setResId(R.mipmap.icon_profil)
-                .setIconNormalColor(0xffffffff)
-                .setIconPressedColor(0xffffffff)
-                .setWrapper(0)
-        );
-        //btn_account
-        /*items.add(new RFACLabelItem<Integer>()
-                .setLabel("tiantian.china.2@gmail.com")
-                .setResId(R.mipmap.logo_velo)
-                .setIconNormalColor(0xff4e342e)
-                .setIconPressedColor(0xff3e2723)
-                .setLabelColor(Color.WHITE)
-                .setLabelSizeSp(14)
-                //.setLabelBackgroundDrawable(ABShape.generateCornerShapeDrawable(0xaa000000, ABTextUtil.dip2px(MainActivity.this, 4)))
-                .setWrapper(1)
-        );
-        items.add(new RFACLabelItem<Integer>()
-                .setLabel("WangJie")
-                .setResId(R.mipmap.logo_velo)
-                .setIconNormalColor(0xff056f00)
-                .setIconPressedColor(0xff0d5302)
-                .setLabelColor(0xff056f00)
-                .setWrapper(2)
-        );
-        items.add(new RFACLabelItem<Integer>()
-                .setLabel("Compose")
-                .setResId(R.mipmap.logo_velo)
-                .setIconNormalColor(0xff283593)
-                .setIconPressedColor(0xff1a237e)
-                .setLabelColor(0xff283593)
-                .setWrapper(3)
-        );*/
-        rfaContent
-                .setItems(items)
-                .setIconShadowColor(0xff888888)
-                //.setIconShadowRadius(ABTextUtil.dip2px(MainActivity.this, 5))
-                //.setIconShadowDy(ABTextUtil.dip2px(MainActivity.this, 5))
-        ;
-
-        RapidFloatingActionButton rfaBtn = findViewById(R.id.activity_main_rfab);
-        RapidFloatingActionLayout rfaLayout = findViewById(R.id.activity_main_rfal);
-
-        rfabHelper = new RapidFloatingActionHelper(
-                MainActivity.this,
-                rfaLayout,
-                rfaBtn,
-                rfaContent
-        ).build();
-
-        btnShowRoute = findViewById(R.id.btn_show_route);
-        //btnShowRoute.setVisibility(View.GONE);
 
         auth = FirebaseAuth.getInstance();
 
@@ -246,9 +198,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
 
-        // Construct a GeoDataClient.
-        mGeoDataClient = Places.getGeoDataClient(this, null);
-
         // Construct a PlaceDetectionClient.
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
 
@@ -259,13 +208,80 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        mLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(final Location location) {
+                //your code here
+                currentUsersPosition = new LatLng(location.getLatitude(), location.getLongitude());
+            }
+            @Override
+            public void onStatusChanged(String str, int in, Bundle bundle){
+
+            }
+            @Override
+            public void onProviderEnabled(String str){
+
+            }
+            @Override
+            public void onProviderDisabled(String str){
+
+            }
+        };
+
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean isGPSEnabled = mLocationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        Log.v("isGPSEnabled", "=" + isGPSEnabled);
+
+        // getting network status
+        boolean isNetworkEnabled = mLocationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
 
-        // FirebaseOptions options = new FirebaseOptions.Builder().setApiKey("AIzaSyDqIClxmWW9mWMff46ap8ibvCnUwpcH_yU").setApplicationId("geofire").setDatabaseUrl(GEO_FIRE_REF).build();
-        // FirebaseApp app = FirebaseApp.initializeApp(this, options, "testApp");
+        try {
+            if (isGPSEnabled == false && isNetworkEnabled == false) {
+                // no network provider is enabled
+            } else {
+                if (isNetworkEnabled) {
+                    currentUsersPosition = null;
+                    mLocationManager.requestLocationUpdates(
+                            LocationManager.NETWORK_PROVIDER,
+                            LOCATION_REFRESH_TIME,
+                            LOCATION_REFRESH_DISTANCE, mLocationListener);
+                    Log.d("Network", "Network");
+                    if (mLocationManager != null) {
+                        Location location = mLocationManager
+                                .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                        currentUsersPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                    }
+                }
+                // if GPS Enabled get lat/long using GPS Services
+                if (isGPSEnabled) {
+                    currentUsersPosition = null;
+                    if (currentUsersPosition == null) {
+                        mLocationManager.requestLocationUpdates(
+                                LocationManager.GPS_PROVIDER,
+                                LOCATION_REFRESH_TIME,
+                                LOCATION_REFRESH_DISTANCE, mLocationListener);
+                        Log.d("GPS Enabled", "GPS Enabled");
+                        if (mLocationManager != null) {
+                            Location location = mLocationManager
+                                    .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                            currentUsersPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                        }
+                    }
+                }
+            }
+        }
+        catch (SecurityException ex){
+
+        }
+
+        /*mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                LOCATION_REFRESH_DISTANCE, mLocationListener);*/
 
         // setup GeoFire
-        //this.geoFire = new GeoFire(FirebaseDatabase.getInstance(app).getReferenceFromUrl(GEO_FIRE_REF));
         ref = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_REF);
         refParcsLocations = FirebaseDatabase.getInstance(FirebaseApp.getInstance()).getReferenceFromUrl(GEO_FIRE_PARCS_REF);
         this.geoFire = new GeoFire(refParcsLocations);
@@ -275,31 +291,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // setup markers
         this.markers = new HashMap<String, Marker>();
 
-        /*btnAccount = findViewById(R.id.btn_account);
-
-        btnAccount.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MainActivity.this, AccountActivity.class));
-            }
-        });*/
-
-        btnShowRoute.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
-                new RetrieveFeedTask().execute();
-            }
-        });
+        BuildFloatingButtons(0);
 
         configureCameraIdle();
         configureMapLongClick();
+        configureMapClick();
         configureMarkerClick();
+    }
+
+
+    //region Floating Buttons
+    public void BuildFloatingButtons(int state){
+        RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(MainActivity.this);
+        rfaContent.setOnRapidFloatingActionContentLabelListListener(this);
+        List<RFACLabelItem> items = new ArrayList<>();
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel(getString(R.string.btn_account))
+                .setResId(R.mipmap.icon_profil)
+                .setIconNormalColor(0xffffffff)
+                .setIconPressedColor(0xffffffff)
+                .setWrapper(0)
+                .setLabelSizeSp(14)
+        );
+
+        // If the state is 1, add the button which builds the route to the parc
+        if (state == 1){
+            items.add(new RFACLabelItem<Integer>()
+                    .setLabel(getString(R.string.btn_show_route))
+                    .setResId(R.mipmap.logo_route)
+                    .setIconNormalColor(0xffffffff)
+                    .setIconPressedColor(0xffffffff)
+                    .setWrapper(0)
+                    //.setLabelSizeSp(14)
+            );
+        }
+
+        rfaContent
+                .setItems(items)
+                .setIconShadowColor(0xff888888)
+        //.setIconShadowRadius(5)
+        //.setIconShadowDy(5)
+        //.setIconShadowRadius(ABTextUtil.dip2px(MainActivity.this, 5))
+        //.setIconShadowDy(ABTextUtil.dip2px(MainActivity.this, 5))
+        ;
+
+        RapidFloatingActionButton rfaBtn = findViewById(R.id.activity_main_rfab);
+        RapidFloatingActionLayout rfaLayout = findViewById(R.id.activity_main_rfal);
+
+        rfabHelper = new RapidFloatingActionHelper(
+                MainActivity.this,
+                rfaLayout,
+                rfaBtn,
+                rfaContent
+        ).build();
+
+        /*if (state == 1){
+            rfaBtn.performClick();
+        }*/
     }
 
     @Override
     public void onRFACItemLabelClick(int position, RFACLabelItem item) {
-        //Toast.makeText(MainActivity.this, "clicked label: " + position, Toast.LENGTH_SHORT).show();
+        switch (position) {
+            case 0:
+                startActivity(new Intent(MainActivity.this, AccountActivity.class));
+                break;
+            case 1:
+                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
+                new RetrieveFeedTask().execute();
+                break;
+            default:
+                break;
+        }
+
         rfabHelper.toggleContent();
     }
 
@@ -309,18 +373,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case 0:
                 startActivity(new Intent(MainActivity.this, AccountActivity.class));
                 break;
+            case 1:
+                googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
+                new RetrieveFeedTask().execute();
+                break;
             default:
                 break;
         }
-        //Toast.makeText(MainActivity.this, "clicked icon: " + position, Toast.LENGTH_SHORT).show();
+
         rfabHelper.toggleContent();
     }
+    //endregion
 
     private void configureMarkerClick() {
         onMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick ( final Marker marker){
-                btnShowRoute.setVisibility(View.VISIBLE);
+                BuildFloatingButtons(1);
                 LatLng position = (LatLng) (marker.getTag());
                 clickedMarkerPosition = position;
 
@@ -329,15 +398,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         };
     }
 
-
+    //region Route building
     class RetrieveFeedTask extends AsyncTask<String, Void, Document> {
 
         private Exception exception;
 
         protected Document doInBackground(String... urls) {
             try {
-                Document doc = googleMapRoutesBuilder.getDocument(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), clickedMarkerPosition,
-                        GoogleMapRoutesBuilder.MODE_DRIVING);
+                    /*Document doc = googleMapRoutesBuilder.getDocument(new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude()), clickedMarkerPosition,
+                        GoogleMapRoutesBuilder.MODE_DRIVING);*/
+                Document doc = googleMapRoutesBuilder.getDocument(new LatLng(currentUsersPosition.latitude, currentUsersPosition.longitude), clickedMarkerPosition,
+                        GoogleMapRoutesBuilder.MODE_CYCLING);
+
 
                 return doc;
             } catch (Exception e) {
@@ -373,7 +445,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Polyline polylin = mMap.addPolyline(rectLine);
         currentPolyline = polylin;
     }
+    //endregion
 
+    //region GeoFire
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
         final LatLng position = new LatLng(location.latitude, location.longitude);
@@ -386,7 +460,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 int parcCapacity = dataSnapshot.getValue(Integer.class);
-                //marker.setTag(String.valueOf(parcCapacity));
                 marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parcCapacity));
             }
 
@@ -431,7 +504,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
     }
+    //endregion
 
+    //region Google Maps
     // Animation handler for old APIs without animation support
     private void animateMarkerTo(final Marker marker, final double lat, final double lng) {
         final Handler handler = new Handler();
@@ -540,8 +615,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // what ever you want to do with No option.
                     }
                 });
+            }
+        };
+    }
 
-                alert.show();
+    private void configureMapClick() {
+        onMapClickListener = new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng point) {
+                BuildFloatingButtons(0);
             }
         };
     }
@@ -589,7 +671,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
-
+        mMap.getUiSettings().setMapToolbarEnabled(false);
         LatLng latLngCenter = new LatLng(INITIAL_CENTER.latitude, INITIAL_CENTER.longitude);
         //this.searchCircle = this.mMap.addCircle(new CircleOptions().center(latLngCenter).radius(1000));
         //this.searchCircle.setFillColor(Color.argb(66, 137, 180, 56));
@@ -634,6 +716,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.setOnCameraIdleListener(onCameraIdleListener);
         mMap.setOnMapLongClickListener(onMapLongClickListener);
+        mMap.setOnMapClickListener(onMapClickListener);
         mMap.setOnMarkerClickListener(onMarkerClickListener);
     }
 
@@ -671,8 +754,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("Exception: %s", e.getMessage());
         }
     }
+    //endregion
 
-
+    //region Permissions
     /**
      * Prompts the user for permission to use the device location.
      */
@@ -712,7 +796,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         updateLocationUI();
     }
+    //endregion
 
+    //region Google Maps others
     /**
      * Prompts the user to select the current place from a list of likely places, and shows the
      * current place on the map - provided the user has granted location permission.
@@ -847,6 +933,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("Exception: %s", e.getMessage());
         }
     }
+    //endregion
 
     public void onStart() {
         super.onStart();
