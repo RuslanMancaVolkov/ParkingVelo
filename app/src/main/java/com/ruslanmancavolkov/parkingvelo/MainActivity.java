@@ -19,6 +19,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +30,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -67,6 +69,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.ruslanmancavolkov.parkingvelo.adapters.ParcsListViewAdapter;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
 import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
 import com.ruslanmancavolkov.parkingvelo.services.GoogleMapRoutesBuilder;
@@ -268,7 +271,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         if (mLocationManager != null) {
                             Location location = mLocationManager
                                     .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                            currentUsersPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                            if (location != null) {
+                                currentUsersPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                            }
                         }
                     }
                 }
@@ -299,7 +304,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         configureMarkerClick();
     }
 
-
     //region Floating Buttons
     public void BuildFloatingButtons(int state){
         RapidFloatingActionContentLabelList rfaContent = new RapidFloatingActionContentLabelList(MainActivity.this);
@@ -308,6 +312,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         items.add(new RFACLabelItem<Integer>()
                 .setLabel(getString(R.string.btn_account))
                 .setResId(R.mipmap.icon_profil)
+                .setIconNormalColor(0xffffffff)
+                .setIconPressedColor(0xffffffff)
+                .setWrapper(0)
+                .setLabelSizeSp(14)
+        );
+
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel(getString(R.string.btn_parcs))
+                .setResId(R.mipmap.icon_parcs)
                 .setIconNormalColor(0xffffffff)
                 .setIconPressedColor(0xffffffff)
                 .setWrapper(0)
@@ -357,6 +370,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, AccountActivity.class));
                 break;
             case 1:
+                startActivity(new Intent(MainActivity.this, ParcsActivity.class));
+                break;
+            case 2:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -374,6 +390,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, AccountActivity.class));
                 break;
             case 1:
+                startActivity(new Intent(MainActivity.this, ParcsActivity.class));
+                break;
+            case 2:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -559,10 +578,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapLongClick(LatLng point) {
                 final LatLng userPoint = point;
-                Toast.makeText(MainActivity.this, "LatLng : " + point.latitude + point.longitude,
-                        Toast.LENGTH_SHORT).show();
-
-
 
                 AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
 
@@ -581,30 +596,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 capacityBox.setInputType(InputType.TYPE_CLASS_NUMBER);
                 layout.addView(capacityBox); // Another add method
 
-                final EditText edittext = new EditText(getApplicationContext());
+                final Switch switchButton = new Switch(getApplicationContext());
+                switchButton.setText(getString(R.string.publishing_switch));
+                switchButton.setGravity(Gravity.RIGHT);
+                layout.addView(switchButton); // Another add method*/
+
                 //alert.setMessage("Ajout d'un parc");
                 alert.setTitle("Ajout d'un parc");
-
                 alert.setView(layout);
 
                 alert.setPositiveButton("Ajouter", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String parcName = nameBox.getText().toString();
                         String parcCapacity = capacityBox.getText().toString();
-                        Toast.makeText(MainActivity.this, "Nom du parc : " + parcName + " - " + parcCapacity,
-                                Toast.LENGTH_LONG).show();
+                        boolean published = switchButton.isChecked();
 
                         String uid = auth.getCurrentUser().getUid();
-                        DatabaseReference postsRef = ref.child("users_parcs").child(uid);
-                        String parcKey = postsRef.push().getKey();
-                        ref.child("users_parcs").child(uid).child(parcKey).setValue(new UsersParcs(true));
-
-                        DatabaseReference parcsRef = ref.child("parcs").child(parcKey);
-                        parcsRef.setValue(new Parcs(parcName, Integer.parseInt(parcCapacity)));
+                        //DatabaseReference postsRef = ref.child("users_parcs").child(uid);
+                        //String parcKey = postsRef.push().getKey();
+                        //ref.child("users_parcs").child(uid).child(parcKey).setValue(true);
+                        DatabaseReference parcsRef = ref.child("parcs");
+                        String parcKey = parcsRef.push().getKey();
+                        parcsRef.child(parcKey).setValue(new Parcs(parcName, Integer.parseInt(parcCapacity), published, uid));
 
                         geoFire = new GeoFire(ref.child("parcs_locations"));
                         geoFire.setLocation(parcKey, new GeoLocation(userPoint.latitude, userPoint.longitude));
-
 
                         //String key_of_data= ref.child("parcs").push().getKey();
                     }
@@ -615,6 +631,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // what ever you want to do with No option.
                     }
                 });
+
+                alert.show();
             }
         };
     }
