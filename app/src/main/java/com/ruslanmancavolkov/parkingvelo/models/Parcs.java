@@ -1,10 +1,11 @@
 package com.ruslanmancavolkov.parkingvelo.models;
 
+import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Parcs {
+public class Parcs implements Serializable {
 
     // Identifiant de l'utilisateur
     public String id;

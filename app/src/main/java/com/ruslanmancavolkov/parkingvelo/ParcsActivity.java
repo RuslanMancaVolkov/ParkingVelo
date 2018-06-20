@@ -17,6 +17,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Switch;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -91,7 +92,23 @@ public class ParcsActivity extends AppCompatActivity implements RecyclerParcsTou
 
         recyclerView = (RecyclerView)findViewById(R.id.recycler_view);
         rootLayout = (CoordinatorLayout)findViewById(R.id.rootLayout);
-        adapter = new ParcsListAdapter(this, parcs);
+        adapter = new ParcsListAdapter(this, parcs, new ParcsListAdapter.ParcsAdapterListener() {
+            @Override
+            public void publishedOnClick(View v, int position) {
+                Parcs parc = parcs.get(position);
+                DatabaseReference parcsRef = ref.child("parcs");
+                boolean isChecked = ((Switch)v).isChecked();
+                parcsRef.child(parc.getId()).child("s").setValue(isChecked);
+            }
+
+            @Override
+            public void editionOnClick(View v, int position) {
+                Intent intent = new Intent(ParcsActivity.this, ParcActivity.class);
+                Parcs parc = parcs.get(position);
+                intent.putExtra("parc", parc);
+                startActivity(intent);
+            }
+        });
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
@@ -102,6 +119,9 @@ public class ParcsActivity extends AppCompatActivity implements RecyclerParcsTou
                 = new RecyclerParcsTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
 
+        ItemTouchHelper.SimpleCallback itemTouchHelperCallbackRight
+                = new RecyclerParcsTouchHelper(0, ItemTouchHelper.RIGHT, this);
+        new ItemTouchHelper(itemTouchHelperCallbackRight).attachToRecyclerView(recyclerView);
 
         Query query = ref.child("parcs").orderByChild("u").equalTo(uid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -123,58 +143,57 @@ public class ParcsActivity extends AppCompatActivity implements RecyclerParcsTou
                 // ...
             }
         });
-
-
     }
 
     @Override
     public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof ParcsListAdapter.MyViewHolder){
-            final Parcs parc = parcs.get(viewHolder.getAdapterPosition());
-            final Parcs deletedItem = parcs.get(viewHolder.getAdapterPosition());
 
-            // On récupère les données géographiques avant de supprimer
-            ref.child("parcs_locations").child(parc.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
+            if (direction == ItemTouchHelper.LEFT) {
+                final Parcs parc = parcs.get(viewHolder.getAdapterPosition());
+                final Parcs deletedItem = parcs.get(viewHolder.getAdapterPosition());
 
-                    final ParcsLocations location = dataSnapshot.getValue(ParcsLocations.class);
+                // On récupère les données géographiques avant de supprimer
+                ref.child("parcs_locations").child(parc.getId()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
 
-                    ref.child("parcs").child(parc.getId()).removeValue();
-                    ref.child("parcs_locations").child(parc.getId()).removeValue();
-                    final int deleteIndex = viewHolder.getAdapterPosition();
+                        final ParcsLocations location = dataSnapshot.getValue(ParcsLocations.class);
 
-                    adapter.removeItem(deleteIndex);
+                        ref.child("parcs").child(parc.getId()).removeValue();
+                        ref.child("parcs_locations").child(parc.getId()).removeValue();
+                        final int deleteIndex = viewHolder.getAdapterPosition();
 
-                    Snackbar snackBar = Snackbar.make(rootLayout, parc.getN() + " " + getString(R.string.delete_parc), Snackbar.LENGTH_LONG);
-                    snackBar.setAction(getString(R.string.undo), new View.OnClickListener(){
+                        adapter.removeItem(deleteIndex);
 
-                        @Override
-                        public void onClick(View v) {
+                        Snackbar snackBar = Snackbar.make(rootLayout, parc.getN() + " " + getString(R.string.delete_parc), Snackbar.LENGTH_LONG);
+                        snackBar.setAction(getString(R.string.undo), new View.OnClickListener() {
 
-                            DatabaseReference parcsRef = ref.child("parcs");
-                            String parcKey = parc.getId();
-                            // Ne pas insérer l'identifiant de l'objet pour alléger la quantité de données stockées
-                            parcsRef.child(parcKey).setValue(new Parcs (parc));
+                            @Override
+                            public void onClick(View v) {
 
-                            geoFire = new GeoFire(ref.child("parcs_locations"));
-                            geoFire.setLocation(parcKey, new GeoLocation(location.l.get(0), location.l.get(1)));
+                                DatabaseReference parcsRef = ref.child("parcs");
+                                String parcKey = parc.getId();
+                                // Ne pas insérer l'identifiant de l'objet pour alléger la quantité de données stockées
+                                parcsRef.child(parcKey).setValue(new Parcs(parc));
 
-                            adapter.restoreItem(deletedItem, deleteIndex);
-                        }
-                    });
+                                geoFire = new GeoFire(ref.child("parcs_locations"));
+                                geoFire.setLocation(parcKey, new GeoLocation(location.l.get(0), location.l.get(1)));
 
-                    snackBar.setActionTextColor(Color.YELLOW);
-                    snackBar.show();
-                }
+                                adapter.restoreItem(deletedItem, deleteIndex);
+                            }
+                        });
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    // ...
-                }
-            });
+                        snackBar.setActionTextColor(Color.YELLOW);
+                        snackBar.show();
+                    }
 
-
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // ...
+                    }
+                });
+            }
         }
     }
 }

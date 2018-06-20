@@ -79,10 +79,14 @@
 
     <string name="btn_show_route">Itinéraire</string>
     <string name="publishing_switch">Publier</string>
-    <string name="title_activity_parcs">ParcsActivity</string>
+    <string name="title_activity_parcs">Mes Parcs</string>
 
     <string name="btn_parcs">Parcs</string>
     <string name="delete">Supprimer</string>
     <string name="delete_parc">supprimé de vos parcs !</string>
     <string name="undo">Annuler</string>
+    <string name="title_activity_parc">Edition</string>
+    <string name="hint_capacity">Capacité</string>
+    <string name="btn_submit">Valider</string>
+    <string name="hint_creation_date">Date de création</string>
 </resources>

@@ -45,6 +45,10 @@
         <activity
             android:name=".ParcsActivity"
             android:label="@string/title_activity_parcs"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".ParcActivity"
+            android:label="@string/title_activity_parc"
             android:theme="@style/AppTheme"></activity>
     </application>
 

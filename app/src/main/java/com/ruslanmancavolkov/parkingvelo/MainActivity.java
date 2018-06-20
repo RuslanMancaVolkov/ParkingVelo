@@ -241,7 +241,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         boolean isNetworkEnabled = mLocationManager
                 .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-
         try {
             if (isGPSEnabled == false && isNetworkEnabled == false) {
                 // no network provider is enabled
@@ -470,16 +469,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onKeyEntered(String key, GeoLocation location) {
         final LatLng position = new LatLng(location.latitude, location.longitude);
-        // Add a new marker to the map
-        final Marker marker = this.mMap.addMarker(new MarkerOptions().position(position)
-                                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
-        marker.setTag(position);
+        // Add a new marker to the map*
+
         final String parcId = key;
-        ref.child("parcs").child(parcId).child("cp").addListenerForSingleValueEvent(new ValueEventListener() {
+        ref.child("parcs").child(parcId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                int parcCapacity = dataSnapshot.getValue(Integer.class);
-                marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parcCapacity));
+                Parcs parc = dataSnapshot.getValue(Parcs.class);
+                Marker marker = null;
+                String uid = auth.getCurrentUser().getUid();
+                // Si le parc est partagé
+                if (parc.getS() || uid.equals(parc.getU())) {
+                    marker = mMap.addMarker(new MarkerOptions().position(position)
+                            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
+                    marker.setTag(position);marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
+                    markers.put(parcId, marker);
+                }
             }
 
             @Override
@@ -488,7 +493,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        this.markers.put(key, marker);
+        //this.markers.put(key, marker);
     }
 
     @Override

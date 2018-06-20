@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.ruslanmancavolkov.parkingvelo.R;
@@ -19,10 +20,12 @@ public class ParcsListAdapter extends RecyclerView.Adapter<ParcsListAdapter.MyVi
 
     public Context context;
     private List<Parcs> parcs;
+    public ParcsAdapterListener onClickListener;
 
-    public ParcsListAdapter(Context context, List<Parcs> parcs) {
+    public ParcsListAdapter(Context context, List<Parcs> parcs, ParcsAdapterListener listener) {
         this.context = context;
         this.parcs = parcs;
+        this.onClickListener = listener;
     }
 
     @NonNull
@@ -37,6 +40,8 @@ public class ParcsListAdapter extends RecyclerView.Adapter<ParcsListAdapter.MyVi
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         Parcs item = parcs.get(position);
         holder.name.setText(item.getN());
+        holder.shared.setChecked(item.s);
+
     }
 
     @Override
@@ -57,14 +62,35 @@ public class ParcsListAdapter extends RecyclerView.Adapter<ParcsListAdapter.MyVi
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public TextView name;
         public ImageView thumbnail;
+        public Switch shared;
         public RelativeLayout viewBackground, viewForeground;
         public MyViewHolder(View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.name);
             thumbnail = itemView.findViewById(R.id.thumbnail);
+            shared = itemView.findViewById(R.id.shared);
             viewBackground = itemView.findViewById(R.id.view_background);
             viewForeground = itemView.findViewById(R.id.view_foreground);
 
+            shared.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickListener.publishedOnClick(v, getAdapterPosition());
+                }
+            });
+
+            viewForeground.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onClickListener.editionOnClick(v, getAdapterPosition());
+                }
+            });
         }
+    }
+
+    public interface ParcsAdapterListener {
+
+        void publishedOnClick(View v, int position);
+        void editionOnClick(View v, int position);
     }
 }
