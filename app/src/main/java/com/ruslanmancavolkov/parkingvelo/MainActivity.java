@@ -25,7 +25,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -40,7 +39,6 @@ import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
@@ -51,8 +49,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -61,7 +57,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -69,10 +64,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.ruslanmancavolkov.parkingvelo.adapters.ParcsListViewAdapter;
+import com.ruslanmancavolkov.parkingvelo.models.ParcWithPosition;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
-import com.ruslanmancavolkov.parkingvelo.models.UsersParcs;
 import com.ruslanmancavolkov.parkingvelo.services.GoogleMapRoutesBuilder;
+import com.ruslanmancavolkov.parkingvelo.utils.DateBuilder;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionHelper;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout;
@@ -159,6 +154,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //region Marker Click
     private LatLng clickedMarkerPosition;
+    private Parcs clickedMarkerParc;
     //endregion
 
     //region Route builder
@@ -169,6 +165,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long LOCATION_REFRESH_TIME = 100;
     private LocationListener mLocationListener;
     //endregion
+
+    LinearLayout likeDislikeLayout, likeDislikeChevronLayout;
+    ImageButton btnLike, btnDislike, btnChevron;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -301,6 +300,101 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         configureMapLongClick();
         configureMapClick();
         configureMarkerClick();
+
+        likeDislikeLayout = findViewById(R.id.like_dislike_layout);
+        likeDislikeChevronLayout = findViewById(R.id.like_dislike_chevron_layout);
+        btnLike = findViewById(R.id.btn_like);
+        btnDislike = findViewById(R.id.btn_dislike);
+        btnChevron = findViewById(R.id.btn_chevron);
+
+        btnLike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //likeDislikeLayout.setVisibility(View.GONE);
+                DatabaseReference notationsRef = ref.child("parcs_notations");
+                String uid = auth.getCurrentUser().getUid();
+                notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
+                notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).removeValue();
+                btnLike.setClickable(false);
+                btnLike.setPressed(true);
+                btnDislike.setClickable(true);
+                btnDislike.setPressed(false);
+                btnChevron.performClick();
+                btnChevron.performClick();
+            }
+        });
+
+        btnDislike.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //likeDislikeLayout.setVisibility(View.GONE);
+                DatabaseReference notationsRef = ref.child("parcs_notations");
+                String uid = auth.getCurrentUser().getUid();
+                notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
+                notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).removeValue();
+                btnDislike.setClickable(false);
+                btnDislike.setPressed(true);
+                btnLike.setClickable(true);
+                btnLike.setPressed(false);
+                btnChevron.performClick();
+                btnChevron.performClick();
+            }
+        });
+
+        btnChevron.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (likeDislikeLayout.getVisibility() == View.GONE){
+                    DatabaseReference notationsRef = ref.child("parcs_notations");
+                    String uid = auth.getCurrentUser().getUid();
+
+                    notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Object obj = dataSnapshot.getValue();
+                            if (obj != null){
+                                btnLike.setClickable(false);
+                                btnLike.setPressed(true);
+                                btnDislike.setClickable(true);
+                                btnDislike.setPressed(false);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // ...
+                        }
+                    });
+
+                    notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Object obj = dataSnapshot.getValue();
+                            if (obj != null){
+                                btnDislike.setClickable(false);
+                                btnDislike.setPressed(true);
+                                btnLike.setClickable(true);
+                                btnLike.setPressed(false);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // ...
+                        }
+                    });
+
+                    likeDislikeLayout.setVisibility(View.VISIBLE);
+                    btnChevron.setBackground(getDrawable(R.mipmap.chevron_right));
+                }
+                else{
+                    btnLike.setPressed(false);
+                    btnDislike.setPressed(false);
+                    likeDislikeLayout.setVisibility(View.GONE);
+                    btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+                }
+            }
+        });
     }
 
     //region Floating Buttons
@@ -408,8 +502,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick ( final Marker marker){
                 BuildFloatingButtons(1);
-                LatLng position = (LatLng) (marker.getTag());
-                clickedMarkerPosition = position;
+                ParcWithPosition parcWithPosition = (ParcWithPosition) (marker.getTag());
+                clickedMarkerPosition = parcWithPosition.getPosition();
+                clickedMarkerParc = parcWithPosition.getParc();
+                likeDislikeChevronLayout.setVisibility(View.VISIBLE);
+                btnChevron.performClick();
+                btnChevron.performClick();
 
                 return false;
             }
@@ -476,13 +574,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Parcs parc = dataSnapshot.getValue(Parcs.class);
+                parc.setId(parcId);
+                ParcWithPosition tag = new ParcWithPosition(parc, position);
                 Marker marker = null;
                 String uid = auth.getCurrentUser().getUid();
                 // Si le parc est partagé
                 if (parc.getS() || uid.equals(parc.getU())) {
                     marker = mMap.addMarker(new MarkerOptions().position(position)
                             .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
-                    marker.setTag(position);marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
+                    marker.setTag(tag);
+                    marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
                     markers.put(parcId, marker);
                 }
             }
@@ -647,6 +748,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng point) {
                 BuildFloatingButtons(0);
+                likeDislikeChevronLayout.setVisibility(View.GONE);
+                likeDislikeLayout.setVisibility(View.GONE);
+                btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+                btnLike.setPressed(false);
+                btnDislike.setPressed(false);
             }
         };
     }

@@ -51,9 +51,6 @@ public class ParcActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 DatabaseReference parcsRef = ref.child("parcs");
-                /*parc.setN(name.getText().toString());
-                parc.setCp(Integer.getInteger(capacity.getText().toString()));
-                parc.setS(shared.isChecked());*/
                 parcsRef.child(parc.getId()).child("n").setValue(name.getText().toString());
                 parcsRef.child(parc.getId()).child("s").setValue(shared.isChecked());
                 parcsRef.child(parc.getId()).child("cp").setValue(Integer.parseInt(capacity.getText().toString()));

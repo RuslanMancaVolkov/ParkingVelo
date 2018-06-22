@@ -28,26 +28,21 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ruslanmancavolkov.parkingvelo.adapters.ParcsListAdapter;
-import com.ruslanmancavolkov.parkingvelo.adapters.ParcsListViewAdapter;
 import com.ruslanmancavolkov.parkingvelo.helpers.RecyclerParcsTouchHelper;
 import com.ruslanmancavolkov.parkingvelo.helpers.RecyclerParcsTouchHelperListener;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
 import com.ruslanmancavolkov.parkingvelo.models.ParcsLocations;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ParcsActivity extends AppCompatActivity implements RecyclerParcsTouchHelperListener {
 
     private FirebaseAuth.AuthStateListener authListener;
     private FirebaseAuth auth;
     ArrayList<Parcs> parcs;
-    private ParcsListViewAdapter parcsListViewAdapter;
     ListView lvParcs;
     private static final String FIREBASE_DB = "https://parking-velo.firebaseio.com/";
     private DatabaseReference ref;
@@ -118,10 +113,6 @@ public class ParcsActivity extends AppCompatActivity implements RecyclerParcsTou
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback
                 = new RecyclerParcsTouchHelper(0, ItemTouchHelper.LEFT, this);
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
-
-        ItemTouchHelper.SimpleCallback itemTouchHelperCallbackRight
-                = new RecyclerParcsTouchHelper(0, ItemTouchHelper.RIGHT, this);
-        new ItemTouchHelper(itemTouchHelperCallbackRight).attachToRecyclerView(recyclerView);
 
         Query query = ref.child("parcs").orderByChild("u").equalTo(uid);
         query.addListenerForSingleValueEvent(new ValueEventListener() {

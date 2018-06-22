@@ -1,5 +1,7 @@
 package com.ruslanmancavolkov.parkingvelo.models;
 
+import com.ruslanmancavolkov.parkingvelo.utils.DateBuilder;
+
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -25,16 +27,21 @@ public class Parcs implements Serializable {
     // Identifiant de l'utilisateur
     public String u;
 
+    // Nombre de likes
+    public Integer lc;
+
+    // Nombre de dislikes
+    public Integer dlc;
+
     public Parcs(){}
 
     public Parcs(String n, Integer cp, Boolean s, String u) {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        /*DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date = new Date();
-        String strDate = dateFormat.format(date).toString();
-
+        String strDate = dateFormat.format(date).toString();*/
         this.n = n;
         this.cp = cp;
-        this.dc = strDate;
+        this.dc = DateBuilder.GetCurrentDate();
         this.s = s;
         this.u = u;
     }
@@ -53,6 +60,17 @@ public class Parcs implements Serializable {
         this.dc = parc.getDc();
         this.s = parc.getS();
         this.u = parc.getU();
+    }
+
+    public Parcs(String id, String n, Integer cp, String dc, Boolean s, String u, Integer lc, Integer dlc) {
+        this.id = id;
+        this.n = n;
+        this.cp = cp;
+        this.dc = dc;
+        this.s = s;
+        this.u = u;
+        this.lc = lc;
+        this.dlc = dlc;
     }
 
     public String getN() {
@@ -101,5 +119,21 @@ public class Parcs implements Serializable {
 
     public void setU(String u) {
         this.u = u;
+    }
+
+    public Integer getLc() {
+        return lc;
+    }
+
+    public void setLc(Integer lc) {
+        this.lc = lc;
+    }
+
+    public Integer getDlc() {
+        return dlc;
+    }
+
+    public void setDlc(Integer dlc) {
+        this.dlc = dlc;
     }
 }

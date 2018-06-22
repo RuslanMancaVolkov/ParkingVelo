@@ -38,7 +38,50 @@
                     android:name="com.google.android.gms.maps.SupportMapFragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    tools:context="com.example.rusla.sortonsadijon.MapsActivity"/>
+                    tools:context="com.example.rusla.sortonsadijon.MapsActivity">
+
+                    <LinearLayout
+                        android:id="@+id/like_dislike_chevron_layout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right|center"
+                        android:orientation="horizontal"
+                        android:visibility="gone">
+                        <LinearLayout
+                            android:id="@+id/like_dislike_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right|center"
+                            android:orientation="horizontal"
+                            android:visibility="gone"
+                            android:gravity="left">
+                            <ImageButton
+                                android:id="@+id/btn_like"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="left"
+                                android:background="@drawable/thumb_up_filter_state"/>
+
+                            <ImageButton
+                                android:id="@+id/btn_dislike"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:background="@drawable/thumb_down_filter_state"/>
+                        </LinearLayout>
+
+                        <ImageButton
+                            android:id="@+id/btn_chevron"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:background="@mipmap/chevron_left"/>
+
+                    </LinearLayout>
+
+
+
+                </fragment>
 
             </FrameLayout>
             <!--<Button
