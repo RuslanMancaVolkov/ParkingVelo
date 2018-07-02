@@ -41,7 +41,7 @@
                     tools:context="com.example.rusla.sortonsadijon.MapsActivity">
 
                 </fragment>
-
+                
             </FrameLayout>
 
         </LinearLayout>
