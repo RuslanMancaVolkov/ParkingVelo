@@ -6,5 +6,6 @@
         android:drawable="@drawable/thumb_down_state_pressed"/>
     <item
         android:state_enabled="true"
+        android:state_pressed="false"
         android:drawable="@mipmap/thumb_down" />
 </selector>

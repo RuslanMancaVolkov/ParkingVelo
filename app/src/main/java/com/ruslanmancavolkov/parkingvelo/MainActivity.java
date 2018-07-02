@@ -22,6 +22,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
@@ -91,7 +92,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //@AIView(R.id.activity_main_rfab)
     private RapidFloatingActionButton rfaBtn;
     private RapidFloatingActionHelper rfabHelper;
-    //endregion
+    private RapidFloatingActionHelper rfabHelperBis;
+//endregion
 
     //region Google Maps
     private GoogleMap mMap;
@@ -166,8 +168,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationListener mLocationListener;
     //endregion
 
-    LinearLayout likeDislikeLayout, likeDislikeChevronLayout;
-    ImageButton btnLike, btnDislike, btnChevron;
+    LinearLayout likeDislikeLayout;
+    ImageButton btnLike, btnDislike;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -302,97 +304,67 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         configureMarkerClick();
 
         likeDislikeLayout = findViewById(R.id.like_dislike_layout);
-        likeDislikeChevronLayout = findViewById(R.id.like_dislike_chevron_layout);
         btnLike = findViewById(R.id.btn_like);
         btnDislike = findViewById(R.id.btn_dislike);
-        btnChevron = findViewById(R.id.btn_chevron);
 
-        btnLike.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //likeDislikeLayout.setVisibility(View.GONE);
-                DatabaseReference notationsRef = ref.child("parcs_notations");
-                String uid = auth.getCurrentUser().getUid();
-                notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
-                notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).removeValue();
-                btnLike.setClickable(false);
-                btnLike.setPressed(true);
-                btnDislike.setClickable(true);
-                btnDislike.setPressed(false);
-                btnChevron.performClick();
-                btnChevron.performClick();
-            }
-        });
+        btnLike.setPressed(true);
+        btnDislike.setPressed(true);
 
-        btnDislike.setOnClickListener(new View.OnClickListener() {
+        btnLike.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onClick(View v) {
-                //likeDislikeLayout.setVisibility(View.GONE);
-                DatabaseReference notationsRef = ref.child("parcs_notations");
-                String uid = auth.getCurrentUser().getUid();
-                notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
-                notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).removeValue();
-                btnDislike.setClickable(false);
-                btnDislike.setPressed(true);
-                btnLike.setClickable(true);
-                btnLike.setPressed(false);
-                btnChevron.performClick();
-                btnChevron.performClick();
-            }
-        });
-
-        btnChevron.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (likeDislikeLayout.getVisibility() == View.GONE){
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    //likeDislikeLayout.setVisibility(View.GONE);
                     DatabaseReference notationsRef = ref.child("parcs_notations");
                     String uid = auth.getCurrentUser().getUid();
+                    if (btnLike.isPressed()) {
+                        notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
+                    } else {
+                        notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).removeValue();
+                    }
 
-                    notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Object obj = dataSnapshot.getValue();
-                            if (obj != null){
-                                btnLike.setClickable(false);
-                                btnLike.setPressed(true);
-                                btnDislike.setClickable(true);
-                                btnDislike.setPressed(false);
-                            }
-                        }
+                    if (!btnDislike.isPressed()) {
+                        notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).removeValue();
+                    }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // ...
-                        }
-                    });
+                    boolean test = btnLike.isPressed();
+                    btnLike.setPressed(!test);
 
-                    notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Object obj = dataSnapshot.getValue();
-                            if (obj != null){
-                                btnDislike.setClickable(false);
-                                btnDislike.setPressed(true);
-                                btnLike.setClickable(true);
-                                btnLike.setPressed(false);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // ...
-                        }
-                    });
-
-                    likeDislikeLayout.setVisibility(View.VISIBLE);
-                    btnChevron.setBackground(getDrawable(R.mipmap.chevron_right));
+                    if (!btnDislike.isPressed()) {
+                        btnDislike.setPressed(true);
+                    }
                 }
-                else{
-                    btnLike.setPressed(false);
-                    btnDislike.setPressed(false);
-                    likeDislikeLayout.setVisibility(View.GONE);
-                    btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+
+                return true;
+            }
+        });
+
+        btnDislike.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    //likeDislikeLayout.setVisibility(View.GONE);
+                    DatabaseReference notationsRef = ref.child("parcs_notations");
+                    String uid = auth.getCurrentUser().getUid();
+                    if (btnDislike.isPressed()) {
+                        notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).child("d").setValue(DateBuilder.GetCurrentDate());
+                    } else {
+                        notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).removeValue();
+                    }
+
+                    if (!btnLike.isPressed()) {
+                        notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).removeValue();
+                    }
+
+                    boolean test = btnDislike.isPressed();
+                    btnDislike.setPressed(!test);
+
+                    if (!btnLike.isPressed()) {
+                        btnLike.setPressed(true);
+                    }
                 }
+
+                return true;
             }
         });
     }
@@ -505,9 +477,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 ParcWithPosition parcWithPosition = (ParcWithPosition) (marker.getTag());
                 clickedMarkerPosition = parcWithPosition.getPosition();
                 clickedMarkerParc = parcWithPosition.getParc();
-                likeDislikeChevronLayout.setVisibility(View.VISIBLE);
-                btnChevron.performClick();
-                btnChevron.performClick();
+
+                DatabaseReference notationsRef = ref.child("parcs_notations");
+                String uid = auth.getCurrentUser().getUid();
+
+                btnLike.setPressed(true);
+                btnDislike.setPressed(true);
+
+                notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Object obj = dataSnapshot.getValue();
+                        if (obj != null){
+                            btnLike.setPressed(false);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // ...
+                    }
+                });
+
+                notationsRef.child(clickedMarkerParc.getId()).child("dislikes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Object obj = dataSnapshot.getValue();
+                        if (obj != null){
+                            btnDislike.setPressed(false);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // ...
+                    }
+                });
+
+                likeDislikeLayout.setVisibility(View.VISIBLE);
 
                 return false;
             }
@@ -525,7 +532,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         GoogleMapRoutesBuilder.MODE_DRIVING);*/
                 Document doc = googleMapRoutesBuilder.getDocument(new LatLng(currentUsersPosition.latitude, currentUsersPosition.longitude), clickedMarkerPosition,
                         GoogleMapRoutesBuilder.MODE_CYCLING);
-
 
                 return doc;
             } catch (Exception e) {
@@ -748,11 +754,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng point) {
                 BuildFloatingButtons(0);
-                likeDislikeChevronLayout.setVisibility(View.GONE);
                 likeDislikeLayout.setVisibility(View.GONE);
-                btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
-                btnLike.setPressed(false);
-                btnDislike.setPressed(false);
+                //btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+                btnLike.setPressed(true);
+                btnDislike.setPressed(true);
             }
         };
     }

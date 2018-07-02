@@ -40,58 +40,9 @@
                     android:layout_height="wrap_content"
                     tools:context="com.example.rusla.sortonsadijon.MapsActivity">
 
-                    <LinearLayout
-                        android:id="@+id/like_dislike_chevron_layout"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="right|center"
-                        android:orientation="horizontal"
-                        android:visibility="gone">
-                        <LinearLayout
-                            android:id="@+id/like_dislike_layout"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right|center"
-                            android:orientation="horizontal"
-                            android:visibility="gone"
-                            android:gravity="left">
-                            <ImageButton
-                                android:id="@+id/btn_like"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="left"
-                                android:background="@drawable/thumb_up_filter_state"/>
-
-                            <ImageButton
-                                android:id="@+id/btn_dislike"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:background="@drawable/thumb_down_filter_state"/>
-                        </LinearLayout>
-
-                        <ImageButton
-                            android:id="@+id/btn_chevron"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="right"
-                            android:background="@mipmap/chevron_left"/>
-
-                    </LinearLayout>
-
-
-
                 </fragment>
 
             </FrameLayout>
-            <!--<Button
-                android:id="@+id/btn_account"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/colorAccent"
-                android:text="@string/btn_account"
-                android:textColor="@android:color/white"
-                android:layout_weight="1"/>-->
 
         </LinearLayout>
     </ScrollView>
@@ -114,10 +65,34 @@
         rfab:rfab_shadow_dx="0dp"
         rfab:rfab_shadow_dy="5dp"
         />
-        <!--
-        rfab:rfab_color_normal="#37474f"
-        rfab:rfab_color_pressed="#263238"
-        rfab:rfab_drawable="@drawable/rfab__drawable_rfab_default"-->
+
+        <LinearLayout
+            android:id="@+id/like_dislike_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:gravity="left"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="right|center"
+            android:layout_marginRight="90dp"
+            android:layout_marginBottom="30dp">
+            <ImageButton
+                android:id="@+id/btn_like"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:background="@drawable/thumb_up_filter_state"/>
+
+            <ImageButton
+                android:id="@+id/btn_dislike"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="@drawable/thumb_down_filter_state"/>
+        </LinearLayout>
 
     </com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout>
+
 </android.support.constraint.ConstraintLayout>
