@@ -6,9 +6,10 @@
 </resources>-->
 <resources>
     <color name="colorPrimary">#ededf4</color>
-    <color name="colorPrimaryDark">#ededf4</color>
+    <color name="colorPrimaryDark">#89b438</color>
     <color name="colorAccent">#89b438</color>
 
+    <color name="items_delete">#e74c3c</color>
     <color name="bg_login">#26ae90</color>
     <color name="bg_register">#2e3237</color>
     <color name="bg_main">#428bca</color>
@@ -23,4 +24,5 @@
     <color name="btn_login_bg">#eceef1</color>
     <color name="lbl_name">#333333</color>
     <color name="btn_logut_bg">#ff6861</color>
+    <color name="test">#3AFFFFFF</color>
 </resources>

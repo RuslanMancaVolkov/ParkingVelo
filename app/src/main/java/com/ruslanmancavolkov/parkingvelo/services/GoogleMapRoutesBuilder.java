@@ -21,6 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class GoogleMapRoutesBuilder {
     public final static String MODE_DRIVING = "driving";
     public final static String MODE_WALKING = "walking";
+    public final static String MODE_CYCLING = "bicycling";
 
     public GoogleMapRoutesBuilder() {
     }
