@@ -481,8 +481,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 DatabaseReference notationsRef = ref.child("parcs_notations");
                 String uid = auth.getCurrentUser().getUid();
 
-                btnLike.setPressed(true);
-                btnDislike.setPressed(true);
+                //btnLike.setPressed(true);
+                //btnDislike.setPressed(true);
 
                 notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -490,6 +490,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Object obj = dataSnapshot.getValue();
                         if (obj != null){
                             btnLike.setPressed(false);
+                            btnDislike.setPressed(true);
                         }
                     }
 
@@ -505,6 +506,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Object obj = dataSnapshot.getValue();
                         if (obj != null){
                             btnDislike.setPressed(false);
+                            btnLike.setPressed(true);
                         }
                     }
 
@@ -754,8 +756,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng point) {
                 BuildFloatingButtons(0);
-                likeDislikeLayout.setVisibility(View.GONE);
-                //btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+                likeDislikeLayout.setVisibility(View.INVISIBLE);
                 btnLike.setPressed(true);
                 btnDislike.setPressed(true);
             }
