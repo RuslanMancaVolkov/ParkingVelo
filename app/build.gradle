@@ -43,6 +43,7 @@ dependencies {
     implementation 'com.github.wangjiegulu:rfab:2.0.0'
     // Outils utilisés par Rapid Floating Action Button
     //implementation 'com.github.wangjiegulu:AndroidBucket:1.0.4'
+    implementation 'org.florescu.android.rangeseekbar:rangeseekbar-library:0.3.0'
     testCompile 'junit:junit:4.12'
 }
 

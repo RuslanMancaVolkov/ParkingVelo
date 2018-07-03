@@ -89,4 +89,9 @@
     <string name="hint_capacity">Capacité</string>
     <string name="btn_submit">Valider</string>
     <string name="hint_creation_date">Date de création</string>
+
+    <string name="btn_filters">Filtres</string>
+    <string name="switch_shared">Afficher les parcs des autres utilisateurs ?</string>
+    <string name="seekbar_capacity">Capacité</string>
+    <string name="seekbar_note">Note</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,6 +31,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -75,6 +77,7 @@ import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RFACLabelItem;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RapidFloatingActionContentLabelList;
 
+import org.florescu.android.rangeseekbar.RangeSeekBar;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
@@ -392,6 +395,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setLabelSizeSp(14)
         );
 
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel(getString(R.string.btn_filters))
+                .setResId(R.mipmap.filter_none)
+                .setIconNormalColor(0xffffffff)
+                .setIconPressedColor(0xffffffff)
+                .setWrapper(0)
+                .setLabelSizeSp(14)
+        );
+
         // If the state is 1, add the button which builds the route to the parc
         if (state == 1){
             items.add(new RFACLabelItem<Integer>()
@@ -438,6 +450,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, ParcsActivity.class));
                 break;
             case 2:
+                SetupFilterAlert();
+                break;
+            case 3:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -458,6 +473,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, ParcsActivity.class));
                 break;
             case 2:
+                SetupFilterAlert();
+                break;
+            case 3:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -467,6 +485,116 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         rfabHelper.toggleContent();
     }
+
+    public void SetupFilterAlert(){
+        AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+
+        Context context = getApplicationContext();
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        final Switch switchButton = new Switch(getApplicationContext());
+        switchButton.setText(getString(R.string.switch_shared));
+        switchButton.setGravity(Gravity.RIGHT);
+        layout.addView(switchButton);
+
+        /*final SeekBar seekbarCapacity = new SeekBar(getApplicationContext());
+        seekbarCapacity.setMax(200);
+        seekbarCapacity.setMinimumWidth(200);
+        seekbarCapacity.setProgress(100);
+        layout.addView(seekbarCapacity);*/
+
+        //region Seekbar Capacity
+        LinearLayout layoutSeekbarCapacity = new LinearLayout(context);
+
+        TextView tvSeekbarCapacity = new TextView(context);
+        layoutSeekbarCapacity.setOrientation(LinearLayout.HORIZONTAL);
+        layoutSeekbarCapacity.setWeightSum(2);
+
+        LinearLayout.LayoutParams lParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParams.weight = 1.6f;
+        tvSeekbarCapacity.setLayoutParams(lParams);
+        tvSeekbarCapacity.setText(R.string.seekbar_capacity);
+        tvSeekbarCapacity.setPadding(0,100,0,0);
+        layoutSeekbarCapacity.addView(tvSeekbarCapacity);
+
+        RangeSeekBar<Integer> seekbarCapacity = new RangeSeekBar<>(this);
+        seekbarCapacity.setRangeValues(0, 500);
+        seekbarCapacity.setSelectedMinValue(0);
+        seekbarCapacity.setSelectedMaxValue(500);
+        seekbarCapacity.setTextAboveThumbsColorResource(R.color.colorAccent);
+        LinearLayout.LayoutParams lParamsSeekBar = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsSeekBar.weight = 0.4f;
+        seekbarCapacity.setLayoutParams(lParamsSeekBar);
+
+        layoutSeekbarCapacity.addView(seekbarCapacity);
+        layout.addView(layoutSeekbarCapacity);
+        //endregion
+
+        //region Seekbar Capacity
+        LinearLayout layoutSeekbarNote = new LinearLayout(context);
+
+        TextView tvSeekbarNote = new TextView(context);
+        layoutSeekbarNote.setOrientation(LinearLayout.HORIZONTAL);
+        layoutSeekbarNote.setWeightSum(2);
+
+        LinearLayout.LayoutParams lParamsNote = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsNote.weight = 1.6f;
+        tvSeekbarNote.setLayoutParams(lParamsNote);
+        tvSeekbarNote.setText(R.string.seekbar_note);
+        tvSeekbarNote.setPadding(0,100,0,0);
+        layoutSeekbarNote.addView(tvSeekbarNote);
+
+        RangeSeekBar<Integer> seekbarNote = new RangeSeekBar<>(this);
+        seekbarNote.setRangeValues(-100, 100);
+        seekbarNote.setSelectedMinValue(-100);
+        seekbarNote.setSelectedMaxValue(100);
+        seekbarNote.setTextAboveThumbsColorResource(R.color.colorAccent);
+        LinearLayout.LayoutParams lParamsSeekBarNote = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsSeekBarNote.weight = 0.4f;
+        seekbarNote.setLayoutParams(lParamsSeekBarNote);
+
+        layoutSeekbarNote.addView(seekbarNote);
+        layout.addView(layoutSeekbarNote);
+        //endregion
+
+        layout.setPadding(25,50,25,25);
+
+        //final TextView seekBarValue = (TextView)findViewById(R.id.seekbarvalue);
+
+        alert.setTitle("Préférences");
+        alert.setView(layout);
+
+        alert.setPositiveButton("Valider", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                /*String parcName = nameBox.getText().toString();
+                String parcCapacity = capacityBox.getText().toString();
+                boolean published = switchButton.isChecked();
+
+                String uid = auth.getCurrentUser().getUid();
+                //DatabaseReference postsRef = ref.child("users_parcs").child(uid);
+                //String parcKey = postsRef.push().getKey();
+                //ref.child("users_parcs").child(uid).child(parcKey).setValue(true);
+                DatabaseReference parcsRef = ref.child("parcs");
+                String parcKey = parcsRef.push().getKey();
+                parcsRef.child(parcKey).setValue(new Parcs(parcName, Integer.parseInt(parcCapacity), published, uid));
+
+                geoFire = new GeoFire(ref.child("parcs_locations"));
+                geoFire.setLocation(parcKey, new GeoLocation(userPoint.latitude, userPoint.longitude));
+                */
+                //String key_of_data= ref.child("parcs").push().getKey();
+            }
+        });
+
+        alert.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // what ever you want to do with No option.
+            }
+        });
+
+        alert.show();
+    }
+
     //endregion
 
     private void configureMarkerClick() {
