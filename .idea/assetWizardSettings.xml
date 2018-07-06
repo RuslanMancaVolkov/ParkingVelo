@@ -112,9 +112,10 @@
                                   </option>
                                   <option name="values">
                                     <map>
+                                      <entry key="assetType" value="IMAGE" />
                                       <entry key="iconShape" value="NONE" />
-                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\icon_parcs.png" />
-                                      <entry key="outputName" value="filter_three" />
+                                      <entry key="imageAsset" value="D:\Diiage\Parking Vélo\images\bike_parc_pin_five_stars.png" />
+                                      <entry key="outputName" value="bike_parc_pin_five_stars" />
                                     </map>
                                   </option>
                                 </PersistentState>

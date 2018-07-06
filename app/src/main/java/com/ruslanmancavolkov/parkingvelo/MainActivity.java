@@ -52,6 +52,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -507,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // ...
             }
         });
-        //region
+        //endregion
     }
 
     public void SetupPreferencesAlert(UsersPreferences usersPreferences){
@@ -565,9 +566,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         layoutSeekbarNote.addView(tvSeekbarNote);
 
         final RangeSeekBar<Integer> seekbarNote = new RangeSeekBar<>(this);
-        seekbarNote.setRangeValues(-100, 100);
-        seekbarNote.setSelectedMinValue(usersPreferences != null ? usersPreferences.getNmi() : -100);
-        seekbarNote.setSelectedMaxValue(usersPreferences != null ? usersPreferences.getNma() : 100);
+        seekbarNote.setRangeValues(0, 5);
+        seekbarNote.setSelectedMinValue(usersPreferences != null ? usersPreferences.getNmi() : 0);
+        seekbarNote.setSelectedMaxValue(usersPreferences != null ? usersPreferences.getNma() : 5);
         seekbarNote.setTextAboveThumbsColorResource(R.color.colorAccent);
         LinearLayout.LayoutParams lParamsSeekBarNote = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         lParamsSeekBarNote.weight = 0.4f;
@@ -578,8 +579,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //endregion
 
         layout.setPadding(25,50,25,25);
-
-        //final TextView seekBarValue = (TextView)findViewById(R.id.seekbarvalue);
 
         alert.setTitle("Préférences");
         alert.setView(layout);
@@ -731,12 +730,53 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         final UsersPreferences usersPreferences = dataSnapshot.getValue(UsersPreferences.class);
                         Marker marker = null;
                         Boolean preferencesOk = true;
+                        BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin);
                         if (usersPreferences != null){
-                            if (usersPreferences.getSs() != parc.getS()){
+                            if (usersPreferences.getSs() != parc.getS() && !uid.equals(parc.getU())){
                                 preferencesOk = false;
                             }
 
                             if (parc.getCp() < usersPreferences.getCmi() || parc.getCp() > usersPreferences.getCma()){
+                                preferencesOk = false;
+                            }
+
+                            Integer likes = parc.getLc() != null ? parc.getLc() : 0;
+                            Integer dislikes = parc.getDlc() != null ? parc.getDlc() : 0;
+                            Integer rating;
+                            Integer stars = 0;
+
+                            if (likes == 0 && dislikes == 0){
+                                rating = 0;
+                            }
+                            else{
+                                rating = likes / (likes + dislikes);
+                            }
+
+                            if (rating < 0.1){
+                                stars = 0;
+                            }
+                            else if (rating < 0.3){
+                                stars = 1;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_one_star);
+                            }
+                            else if (rating < 0.5){
+                                stars = 2;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_two_stars);
+                            }
+                            else if (rating < 0.7){
+                                stars = 3;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_three_stars);
+                            }
+                            else if (rating < 0.9){
+                                stars = 4;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_four_stars);
+                            }
+                            else if (rating > 0.9){
+                                stars = 5;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_five_stars);
+                            }
+
+                            if (stars < usersPreferences.getNmi() || stars > usersPreferences.getNma()){
                                 preferencesOk = false;
                             }
                         }
@@ -744,7 +784,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // Si le parc est partagé
                         if ((parc.getS() || uid.equals(parc.getU())) && preferencesOk) {
                             marker = mMap.addMarker(new MarkerOptions().position(position)
-                                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
+                                    .icon(pin));
                             marker.setTag(tag);
                             marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
                             markers.put(parcId, marker);
