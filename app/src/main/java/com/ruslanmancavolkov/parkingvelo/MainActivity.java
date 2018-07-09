@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -30,6 +32,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,10 +47,12 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -64,9 +69,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ruslanmancavolkov.parkingvelo.models.ParcWithPosition;
 import com.ruslanmancavolkov.parkingvelo.models.Parcs;
+import com.ruslanmancavolkov.parkingvelo.models.ParcsLocations;
+import com.ruslanmancavolkov.parkingvelo.models.UsersPreferences;
 import com.ruslanmancavolkov.parkingvelo.services.GoogleMapRoutesBuilder;
 import com.ruslanmancavolkov.parkingvelo.utils.DateBuilder;
 import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionButton;
@@ -75,6 +83,7 @@ import com.wangjie.rapidfloatingactionbutton.RapidFloatingActionLayout;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RFACLabelItem;
 import com.wangjie.rapidfloatingactionbutton.contentimpl.labellist.RapidFloatingActionContentLabelList;
 
+import org.florescu.android.rangeseekbar.RangeSeekBar;
 import org.w3c.dom.Document;
 
 import java.util.ArrayList;
@@ -392,6 +401,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .setLabelSizeSp(14)
         );
 
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel(getString(R.string.btn_filters))
+                .setResId(R.mipmap.filter_none)
+                .setIconNormalColor(0xffffffff)
+                .setIconPressedColor(0xffffffff)
+                .setWrapper(0)
+                .setLabelSizeSp(14)
+        );
+
         // If the state is 1, add the button which builds the route to the parc
         if (state == 1){
             items.add(new RFACLabelItem<Integer>()
@@ -438,6 +456,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, ParcsActivity.class));
                 break;
             case 2:
+                SetupPreferencesUi();
+                break;
+            case 3:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -458,6 +479,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(new Intent(MainActivity.this, ParcsActivity.class));
                 break;
             case 2:
+                SetupPreferencesUi();
+                break;
+            case 3:
                 googleMapRoutesBuilder = new GoogleMapRoutesBuilder();
                 new RetrieveFeedTask().execute();
                 break;
@@ -467,6 +491,120 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         rfabHelper.toggleContent();
     }
+
+    public void SetupPreferencesUi(){
+
+        //region Retrieving User Preferences
+        String uid = auth.getCurrentUser().getUid();
+        ref.child("users_preferences").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final UsersPreferences usersPreferences = dataSnapshot.getValue(UsersPreferences.class);
+                SetupPreferencesAlert(usersPreferences);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // ...
+            }
+        });
+        //endregion
+    }
+
+    public void SetupPreferencesAlert(UsersPreferences usersPreferences){
+        final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+
+        Context context = getApplicationContext();
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+
+        final Switch switchButton = new Switch(getApplicationContext());
+        switchButton.setText(getString(R.string.switch_shared));
+        switchButton.setGravity(Gravity.RIGHT);
+        switchButton.setChecked(usersPreferences != null ? usersPreferences.getSs() : true);
+        layout.addView(switchButton);
+
+        //region Seekbar Capacity
+        LinearLayout layoutSeekbarCapacity = new LinearLayout(context);
+
+        TextView tvSeekbarCapacity = new TextView(context);
+        layoutSeekbarCapacity.setOrientation(LinearLayout.HORIZONTAL);
+        layoutSeekbarCapacity.setWeightSum(2);
+
+        LinearLayout.LayoutParams lParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParams.weight = 1.6f;
+        tvSeekbarCapacity.setLayoutParams(lParams);
+        tvSeekbarCapacity.setText(R.string.seekbar_capacity);
+        tvSeekbarCapacity.setPadding(0,100,0,0);
+        layoutSeekbarCapacity.addView(tvSeekbarCapacity);
+
+        final RangeSeekBar<Integer> seekbarCapacity = new RangeSeekBar<>(this);
+        seekbarCapacity.setRangeValues(0, 500);
+        seekbarCapacity.setSelectedMinValue(usersPreferences != null ? usersPreferences.getCmi() : 0);
+        seekbarCapacity.setSelectedMaxValue(usersPreferences != null ? usersPreferences.getCma() : 500);
+        seekbarCapacity.setTextAboveThumbsColorResource(R.color.colorAccent);
+        LinearLayout.LayoutParams lParamsSeekBar = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsSeekBar.weight = 0.4f;
+        seekbarCapacity.setLayoutParams(lParamsSeekBar);
+
+        layoutSeekbarCapacity.addView(seekbarCapacity);
+        layout.addView(layoutSeekbarCapacity);
+        //endregion
+
+        //region Seekbar Note
+        LinearLayout layoutSeekbarNote = new LinearLayout(context);
+
+        TextView tvSeekbarNote = new TextView(context);
+        layoutSeekbarNote.setOrientation(LinearLayout.HORIZONTAL);
+        layoutSeekbarNote.setWeightSum(2);
+
+        LinearLayout.LayoutParams lParamsNote = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsNote.weight = 1.6f;
+        tvSeekbarNote.setLayoutParams(lParamsNote);
+        tvSeekbarNote.setText(R.string.seekbar_note);
+        tvSeekbarNote.setPadding(0,100,0,0);
+        layoutSeekbarNote.addView(tvSeekbarNote);
+
+        final RangeSeekBar<Integer> seekbarNote = new RangeSeekBar<>(this);
+        seekbarNote.setRangeValues(0, 5);
+        seekbarNote.setSelectedMinValue(usersPreferences != null ? usersPreferences.getNmi() : 0);
+        seekbarNote.setSelectedMaxValue(usersPreferences != null ? usersPreferences.getNma() : 5);
+        seekbarNote.setTextAboveThumbsColorResource(R.color.colorAccent);
+        LinearLayout.LayoutParams lParamsSeekBarNote = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lParamsSeekBarNote.weight = 0.4f;
+        seekbarNote.setLayoutParams(lParamsSeekBarNote);
+
+        layoutSeekbarNote.addView(seekbarNote);
+        layout.addView(layoutSeekbarNote);
+        //endregion
+
+        layout.setPadding(25,50,25,25);
+
+        alert.setTitle("Préférences");
+        alert.setView(layout);
+
+        alert.setPositiveButton("Valider", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                String uid = auth.getCurrentUser().getUid();
+                DatabaseReference parcsRef = ref.child("users_preferences");
+                parcsRef.child(uid).child("ss").setValue(switchButton.isChecked());
+                parcsRef.child(uid).child("cmi").setValue(seekbarCapacity.getSelectedMinValue());
+                parcsRef.child(uid).child("cma").setValue(seekbarCapacity.getSelectedMaxValue());
+                parcsRef.child(uid).child("nmi").setValue(seekbarNote.getSelectedMinValue());
+                parcsRef.child(uid).child("nma").setValue(seekbarNote.getSelectedMaxValue());
+                startActivity(new Intent(MainActivity.this, MainActivity.class));
+            }
+        });
+
+        alert.setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                // what ever you want to do with No option.
+            }
+        });
+
+        alert.show();
+    }
+
     //endregion
 
     private void configureMarkerClick() {
@@ -481,8 +619,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 DatabaseReference notationsRef = ref.child("parcs_notations");
                 String uid = auth.getCurrentUser().getUid();
 
-                btnLike.setPressed(true);
-                btnDislike.setPressed(true);
+                //btnLike.setPressed(true);
+                //btnDislike.setPressed(true);
 
                 notationsRef.child(clickedMarkerParc.getId()).child("likes").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -490,6 +628,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Object obj = dataSnapshot.getValue();
                         if (obj != null){
                             btnLike.setPressed(false);
+                            btnDislike.setPressed(true);
                         }
                     }
 
@@ -505,6 +644,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         Object obj = dataSnapshot.getValue();
                         if (obj != null){
                             btnDislike.setPressed(false);
+                            btnLike.setPressed(true);
                         }
                     }
 
@@ -579,19 +719,83 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ref.child("parcs").child(parcId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Parcs parc = dataSnapshot.getValue(Parcs.class);
+                final Parcs parc = dataSnapshot.getValue(Parcs.class);
                 parc.setId(parcId);
-                ParcWithPosition tag = new ParcWithPosition(parc, position);
-                Marker marker = null;
-                String uid = auth.getCurrentUser().getUid();
-                // Si le parc est partagé
-                if (parc.getS() || uid.equals(parc.getU())) {
-                    marker = mMap.addMarker(new MarkerOptions().position(position)
-                            .icon(BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin)));
-                    marker.setTag(tag);
-                    marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
-                    markers.put(parcId, marker);
-                }
+                final ParcWithPosition tag = new ParcWithPosition(parc, position);
+                final String uid = auth.getCurrentUser().getUid();
+
+                ref.child("users_preferences").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        final UsersPreferences usersPreferences = dataSnapshot.getValue(UsersPreferences.class);
+                        Marker marker = null;
+                        Boolean preferencesOk = true;
+                        BitmapDescriptor pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin);
+                        if (usersPreferences != null){
+                            if (usersPreferences.getSs() != parc.getS() && !uid.equals(parc.getU())){
+                                preferencesOk = false;
+                            }
+
+                            if (parc.getCp() < usersPreferences.getCmi() || parc.getCp() > usersPreferences.getCma()){
+                                preferencesOk = false;
+                            }
+
+                            Integer likes = parc.getLc() != null ? parc.getLc() : 0;
+                            Integer dislikes = parc.getDlc() != null ? parc.getDlc() : 0;
+                            Integer rating;
+                            Integer stars = 0;
+
+                            if (likes == 0 && dislikes == 0){
+                                rating = 0;
+                            }
+                            else{
+                                rating = likes / (likes + dislikes);
+                            }
+
+                            if (rating < 0.1){
+                                stars = 0;
+                            }
+                            else if (rating < 0.3){
+                                stars = 1;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_one_star);
+                            }
+                            else if (rating < 0.5){
+                                stars = 2;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_two_stars);
+                            }
+                            else if (rating < 0.7){
+                                stars = 3;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_three_stars);
+                            }
+                            else if (rating < 0.9){
+                                stars = 4;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_four_stars);
+                            }
+                            else if (rating > 0.9){
+                                stars = 5;
+                                pin = BitmapDescriptorFactory.fromResource(R.mipmap.bike_parc_pin_five_stars);
+                            }
+
+                            if (stars < usersPreferences.getNmi() || stars > usersPreferences.getNma()){
+                                preferencesOk = false;
+                            }
+                        }
+
+                        // Si le parc est partagé
+                        if ((parc.getS() || uid.equals(parc.getU())) && preferencesOk) {
+                            marker = mMap.addMarker(new MarkerOptions().position(position)
+                                    .icon(pin));
+                            marker.setTag(tag);
+                            marker.setTitle(getString(R.string.parc_capacity) + " : " + String.valueOf(parc.getCp()));
+                            markers.put(parcId, marker);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        // ...
+                    }
+                });
             }
 
             @Override
@@ -713,7 +917,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switchButton.setGravity(Gravity.RIGHT);
                 layout.addView(switchButton); // Another add method*/
 
-                //alert.setMessage("Ajout d'un parc");
                 alert.setTitle("Ajout d'un parc");
                 alert.setView(layout);
 
@@ -724,17 +927,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         boolean published = switchButton.isChecked();
 
                         String uid = auth.getCurrentUser().getUid();
-                        //DatabaseReference postsRef = ref.child("users_parcs").child(uid);
-                        //String parcKey = postsRef.push().getKey();
-                        //ref.child("users_parcs").child(uid).child(parcKey).setValue(true);
                         DatabaseReference parcsRef = ref.child("parcs");
                         String parcKey = parcsRef.push().getKey();
                         parcsRef.child(parcKey).setValue(new Parcs(parcName, Integer.parseInt(parcCapacity), published, uid));
 
                         geoFire = new GeoFire(ref.child("parcs_locations"));
                         geoFire.setLocation(parcKey, new GeoLocation(userPoint.latitude, userPoint.longitude));
-
-                        //String key_of_data= ref.child("parcs").push().getKey();
                     }
                 });
 
@@ -754,8 +952,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng point) {
                 BuildFloatingButtons(0);
-                likeDislikeLayout.setVisibility(View.GONE);
-                //btnChevron.setBackground(getDrawable(R.mipmap.chevron_left));
+                likeDislikeLayout.setVisibility(View.INVISIBLE);
                 btnLike.setPressed(true);
                 btnDislike.setPressed(true);
             }
